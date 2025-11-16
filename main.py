@@ -165,6 +165,12 @@ class MainMenu(Button):
 
     #should make a function that fixes sun appearing on both ends of the screen by scaling the image a bit larger than it already is
 
+class Start(Button):
+    def __init__(self, window, screen):
+        super().__init__(window)
+        self.screen_width, self.screen_height = screen[0][0], screen[0][1]
+
+
 class ControlsMenu(Button):
     def __init__(self, window, screen):
         super().__init__(window)
