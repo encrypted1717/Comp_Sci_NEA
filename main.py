@@ -23,7 +23,7 @@ class WindowManager:
                 self.windows["settings"] = SettingsMenu(self.window, self.win_res)
             else:
                 self.windows["exit"] = ExitMenu()
-        return self.windows[self.state]x    
+        return self.windows[self.state]
 
     def update_window(self, events):
         self.events = events
