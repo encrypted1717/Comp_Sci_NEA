@@ -213,7 +213,7 @@ def main():
         manager.draw()
         pygame.display.flip()
 
-        #print(win_resolution)
+        #print(win_resolution) hahahahah
 
 
 if __name__ == "__main__":
