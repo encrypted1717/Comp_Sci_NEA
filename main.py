@@ -17,6 +17,8 @@ class WindowManager:
         if self.state not in self.windows:
             if self.state == "main_menu":
                 self.windows["main_menu"] = MainMenu(self.window, self.win_res)
+            elif self.state == "start":
+                self.windows["start"] = StartMenu(self.window, self.win_res)
             elif self.state == "controls":
                 self.windows["controls"] = ControlsMenu(self.window, self.win_res)
             elif self.state == "settings":
@@ -30,7 +32,6 @@ class WindowManager:
         self.new_state = self.get_window().update(self.events) #pass events to always check what happens
         if self.new_state != self.state:
             self.state = self.new_state
-        self.get_window()
 
     def draw(self):
         self.get_window().draw()
@@ -40,64 +41,65 @@ class WindowManager:
 class Button(pygame.sprite.Sprite):
     def __init__(self, window): #consider adding a log as image
         super().__init__()
-        #create rect requires...
-        self.position = None #default
-        self.dimensions = None
+        self.window = window
+        self.btn = None
 
-        #draw rect
+        #features of rect
+        self.rect = None
+        self.position = None
+        self.dimensions = None
         self.colour = None
         self.offset_x = 0
         self.offset_y = 0
         self.border = False
 
-        #create text
-        self.rect = None
-        self.window = window
+        #text surface
         self.text = ""
         self.text_surf = None
         self.text_rect = None
-
-        #text
 
     def create_rect(self, position, dimensions, colour, text, font, border = 0, offset_x = 0, offset_y = 0, image= None):
         self.text = text
         self.offset_x = offset_x
         self.offset_y = offset_y
         self.border = border
-        #assign colour to be used in self.draw()
         self.colour = colour
         self.dimensions = dimensions #tuple of width and height
-        #make the rect
+
+        #make the text rect
         self.rect = pygame.Rect((0,0), dimensions) #create rect but leave the coordinate to default to 0,0
         self.rect.center = position
-        #make the text
         self.text_surf = font.render(self.text, False, '#ffffff')  # true/false is for anti-aliasing on the font
         self.text_rect = self.text_surf.get_rect(center=self.rect.center)
 
+        #apply offsets if needed
         if self.offset_x != 0:
             self.text_rect.x += self.offset_x
         if self.offset_y != 0:
             self.text_rect.y += self.offset_y
 
-        return {"text": self.text, "text surf" : self.text_surf, "text rect": self.text_rect, "colour" : self.colour, "rect" : self.rect, "border" : self.border}
+        #dictionary holds all data of the button
+        self.btn = {"text": self.text, "text surf" : self.text_surf, "text rect": self.text_rect, "colour" : self.colour, "rect" : self.rect, "border" : self.border}
+        return self.btn
 
 class MainMenu(Button):
     def __init__(self, window, screen):
         super().__init__(window)
         from modules.main_menu_background import background
         self.new_window = None
+        self.screen_width, self.screen_height = screen[0][0], screen[0][1]
         self.events = None
-        self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
         self.window = window
+        #parallax background
         self.parallax_background = background
         self.scale = None
         self.scale_height = None
         self.scale_width = None  # default scale
-        self.screen_width, self.screen_height = screen[0][0], screen[0][1]
-        self.y = 0 #value that the background needs to move down
-        #setup
         self.transform_background_to_window_size()
+
+
         #button class
+        self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
         self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', "Start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
 
         self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', "Controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
@@ -129,7 +131,6 @@ class MainMenu(Button):
             self.scale_width = self.screen_width / layer["img"].get_width() # get scale factor for width
             self.scale_height = self.screen_height / layer["img"].get_height()
             self.scale = max(self.scale_width, self.scale_height)
-            self.y = self.screen_height / 2
             layer["img"] = pygame.transform.scale_by(layer["img"], self.scale) #multiply by scale factor because height is irrelevant as the height of all the files are the same
             print("name", layer["speed"], "Height", layer["img"].get_height(), "height of window", self.screen_height)
             self.scale = 1 #updating scale
@@ -170,11 +171,17 @@ class Start(Button):
         super().__init__(window)
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
 
+    def update(self):
+        return "start"
+
 
 class ControlsMenu(Button):
     def __init__(self, window, screen):
         super().__init__(window)
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
+
+    def update(self):
+        return "controls"
 
 
 
@@ -184,6 +191,9 @@ class SettingsMenu(Button):
         self.window = window
         self.config = ConfigParser()
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
+
+    def update(self):
+        return "settings"
 
 class ExitMenu:
     def __init__(self):
