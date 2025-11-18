@@ -6,11 +6,9 @@ class WindowManager:
     def __init__(self, window):
         self.events = None
         self.window = window
-        self.color = pygame.Color("#ffffff")
-        self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 60) #77 largest font size before grid lines start appearing
         self.state = "main_menu" #defaults to this
         self.win_res = pygame.display.list_modes()
-        self.windows = {"main_menu" : MainMenu(self.window, self.win_res)} #windows that are preloaded and colour purple
+        self.windows = {"main_menu" : MainMenu(self.window, self.win_res)} #windows that are preloaded
         self.new_state = None
 
     def get_window(self): #or create/load anything that isn't already loaded into the windows
@@ -27,10 +25,10 @@ class WindowManager:
                 self.windows["exit"] = ExitMenu()
         return self.windows[self.state]
 
-    def update_window(self, events):
+    def set_window(self, events):
         self.events = events
-        self.new_state = self.get_window().update(self.events) #pass events to always check what happens
-        if self.new_state != self.state:
+        self.new_state = self.get_window().event_handler(self.events)
+        if self.new_state: #if true then there is a new state
             self.state = self.new_state
 
     def draw(self):
@@ -96,25 +94,21 @@ class MainMenu(Button):
         self.scale_height = None
         self.scale_width = None  # default scale
         self.transform_background_to_window_size()
-
-
-        #button class
+        #buttons
         self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
         self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', "Start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
-
         self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', "Controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
-
         self.settings_button = self.create_rect((960, 680), (255, 70), '#ffffff', "Settings", self.font, 5, offset_y=4)
-
         self.exit_button = self.create_rect((960, 770), (255, 70), '#ffffff', "Exit", self.font, 5, offset_y=4)
-
         self.buttons = [self.start_button, self.controls_button, self.settings_button, self.exit_button]
+        #plan to make a variable called self.gap possibly which uses the gap value if a button collides with another button
 
     def draw_background(self):
+        #could implement pygame sprites for this instead using spite.kill ... would have to see which is more efficient
         for layer in self.parallax_background:
-            layer["x"] -= layer["speed"] #x value is the coordinate on the screen which gets reduced by the value assigned to speed
+            layer["x"] -= layer["speed"] #x value is the coordinate on the screen which gets reduced by the value speed
             if layer["x"] <= -layer["img"].get_width():
-                layer["x"] = 0 #reset scrolling if image off the screen
+                layer["x"] = 0 #reset scrolling if image off the screen/less than the x dimension of the image
 
             self.window.blit(layer["img"], (layer["x"], 0))  # draw first copy
             self.window.blit(layer["img"], (layer["x"] + layer["img"].get_width(), 0))  # draw second copy
@@ -127,51 +121,43 @@ class MainMenu(Button):
 
 
     def transform_background_to_window_size(self):
-        for layer in self.parallax_background: #scales background to window size
+        for layer in self.parallax_background:
+            #scales background to window size
             self.scale_width = self.screen_width / layer["img"].get_width() # get scale factor for width
             self.scale_height = self.screen_height / layer["img"].get_height()
             self.scale = max(self.scale_width, self.scale_height)
             layer["img"] = pygame.transform.scale_by(layer["img"], self.scale) #multiply by scale factor because height is irrelevant as the height of all the files are the same
-            print("name", layer["speed"], "Height", layer["img"].get_height(), "height of window", self.screen_height)
-            self.scale = 1 #updating scale
+            #check_image = print("name", layer["speed"], "Height", layer["img"].get_height(), "height of window", self.screen_height)
+            self.scale = 1 #updating/resetting scale
+            #TODO fix sun appearing on both ends of the screen by scaling the image a bit larger
 
-    def event_handler(self):
-        for event in self.events:
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                for btn in self.buttons:
-                    if btn["rect"].collidepoint(event.pos):
-                        for menu in self.buttons:
-                            if menu["text"] == "Start":
-                                return "Start"
-                            elif menu["text"] == "Controls":
-                                return "Controls"
-                            elif menu["text"] == "Settings":
-                                return "Settings"
-                            else:
-                                return "Exit"
-
-                print(event.pos, event.button)
-        return "main_menu"
-
-    def update(self, events):
+    def event_handler(self, events):
         self.events = events
-        self.new_window = self.event_handler()
-        #if smth happens then return the window required
-        return self.new_window #for now placeholder
+        for event in self.events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: #if user left clicks mouse
+                for btn in self.buttons:
+                    if btn["rect"].collidepoint(event.pos): #if colliding with any menu buttons... open that menu
+                        if btn["text"] == "start":
+                            return "start"
+                        elif btn["text"] == "controls":
+                            return "controls"
+                        elif btn["text"] == "settings":
+                            return "settings"
+                        else:
+                            return "exit"
+                #check_click = print(event.pos, event.button)
+        return None
 
     def draw(self):
         self.draw_background() #keep loading background
         self.draw_buttons() #keep loading buttons
-
-
-    #should make a function that fixes sun appearing on both ends of the screen by scaling the image a bit larger than it already is
 
 class Start(Button):
     def __init__(self, window, screen):
         super().__init__(window)
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
 
-    def update(self):
+    def event_handler(self):
         return "start"
 
 
@@ -180,7 +166,7 @@ class ControlsMenu(Button):
         super().__init__(window)
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
 
-    def update(self):
+    def event_handler(self):
         return "controls"
 
 
@@ -192,7 +178,7 @@ class SettingsMenu(Button):
         self.config = ConfigParser()
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
 
-    def update(self):
+    def event_handler(self):
         return "settings"
 
 class ExitMenu:
@@ -204,33 +190,27 @@ def main():
     pygame.init() #initiating pygame
     clock = pygame.time.Clock() #tool to control tick speed/fps/physics
     vector = pygame.math.Vector2  # import 2d assets from pygame
-    default_win_res = (1920, 1080)
-    window = pygame.display.set_mode(default_win_res)  # Menu(win_resolution) 1088 640
+    initial_win_res = pygame.display.list_modes()
+    window = pygame.display.set_mode(initial_win_res[0])
     manager = WindowManager(window)
-
-    # loop to check if program is closed
 
     running = True
     while running:
         events = pygame.event.get()  # store events in a variable and updates it
         clock.tick(60) #sets tick speed and returns number of milliseconds passed from last time tick was called
         fps = clock.get_fps()
+        #check_fps = print(f"{clock.tick(60)} and {fps} and {dt}") #check fps per second and dt value
         dt = fps / 1000  # converting to seconds
-        win_resolution = pygame.display.get_desktop_sizes()  # tuple of resolution set by windows #if more than one tuple then there is more than one display
+        win_resolution = pygame.display.get_desktop_sizes()  # tuple of resolution set by windows, if more than one tuple then there is more than one display. checking in the loop checks for when you add or remove a monitor
 
-        #print(f"{clock.tick(60)} and {fps} and {dt}") #check fps per second and dt value
 
-        #default settings if not then grab from file
         for event in events:
             if event.type == pygame.QUIT:
                 running = False
 
-        manager.update_window(events)
+        manager.set_window(events)
         manager.draw()
         pygame.display.flip()
-
-        #print(win_resolution) hahahahah
-
 
 if __name__ == "__main__":
     main()
