@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 import pygame
 
+
 #WindowManager handles everything to do with the windows (i.e. switching/creating/deleting windows
 class WindowManager:
     def __init__(self, window):
@@ -22,7 +23,7 @@ class WindowManager:
             elif self.state == "settings":
                 self.windows["settings"] = SettingsMenu(self.window, self.win_res)
             else:
-                self.windows["exit"] = ExitMenu()
+                self.windows["exit"] = ExitMenu(self.window)
         return self.windows[self.state]
 
     def set_window(self, events):
@@ -33,7 +34,6 @@ class WindowManager:
 
     def draw(self):
         self.get_window().draw()
-
 
 
 class Button(pygame.sprite.Sprite):
@@ -80,6 +80,7 @@ class Button(pygame.sprite.Sprite):
         self.btn = {"text": self.text, "text surf" : self.text_surf, "text rect": self.text_rect, "colour" : self.colour, "rect" : self.rect, "border" : self.border}
         return self.btn
 
+
 class MainMenu(Button):
     def __init__(self, window, screen):
         super().__init__(window)
@@ -104,7 +105,7 @@ class MainMenu(Button):
         #plan to make a variable called self.gap possibly which uses the gap value if a button collides with another button
 
     def draw_background(self):
-        #could implement pygame sprites for this instead using spite.kill ... would have to see which is more efficient
+        #TODO could implement pygame sprites for this instead using spite.kill ... would have to see which is more efficient
         for layer in self.parallax_background:
             layer["x"] -= layer["speed"] #x value is the coordinate on the screen which gets reduced by the value speed
             if layer["x"] <= -layer["img"].get_width():
@@ -118,7 +119,6 @@ class MainMenu(Button):
             for btn in self.buttons:
                 pygame.draw.rect(self.window, btn["colour"], btn["rect"], btn["border"])
                 self.window.blit(btn["text surf"], btn["text rect"]) #dictionary received from button class returns the text to put in the button and the type of rectangle
-
 
     def transform_background_to_window_size(self):
         for layer in self.parallax_background:
@@ -152,6 +152,7 @@ class MainMenu(Button):
         self.draw_background() #keep loading background
         self.draw_buttons() #keep loading buttons
 
+
 class Start(Button):
     def __init__(self, window, screen):
         super().__init__(window)
@@ -170,20 +171,55 @@ class ControlsMenu(Button):
         return "controls"
 
 
-
 class SettingsMenu(Button):
     def __init__(self, window, screen):
         super().__init__(screen)
         self.window = window
         self.config = ConfigParser()
+        self.back_btn = self.create_rect((150, 120), (175, 70), '#000000', "Back", self.font, 0, offset_y=4)
+        self.buttons = [self.back_btn]
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
 
-    def event_handler(self):
-        return "settings"
+    def event_handler(self, events):
+        self.events = events
+        for event in self.events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # if user left clicks mouse
+                if self.back_btn["rect"].collidepoint(event.pos):
+                    return "main_menu"
+            # check_click = print(event.pos, event.button)
+        return None
 
-class ExitMenu:
-    def __init__(self):
-        pygame.event.post(pygame.event.Event(pygame.QUIT))
+    def draw(self):
+        for btn in self.buttons:
+            pygame.draw.rect(self.window, btn["colour"], btn["rect"], btn["border"])
+            self.window.blit(btn["text surf"], btn["text rect"])
+
+
+class ExitMenu(Button):
+    def __init__(self, window):
+        super().__init__(window)
+        self.window = window
+        self.events = None
+        self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
+        self.confirmation_btn = self.create_rect((960, 540), (550, 120), '#000000', "Are you sure you want to exit", self.font, 0, offset_y=4)
+        self.back_btn = self.create_rect((150, 120), (175, 70), '#000000', "Back", self.font, 0, offset_y=4)
+        self.buttons = [self.confirmation_btn, self.back_btn]
+
+    def event_handler(self, events):
+        self.events = events
+        for event in self.events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # if user left clicks mouse
+                if self.confirmation_btn["rect"].collidepoint(event.pos):  # if colliding with any menu buttons... open that menu
+                    pygame.event.post(pygame.event.Event(pygame.QUIT))
+                if self.back_btn["rect"].collidepoint(event.pos):
+                    return "main_menu"
+            # check_click = print(event.pos, event.button)
+        return None
+
+    def draw(self):
+        for btn in self.buttons:
+            pygame.draw.rect(self.window, btn["colour"], btn["rect"], btn["border"])
+            self.window.blit(btn["text surf"], btn["text rect"])
 
 
 def main():
