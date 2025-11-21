@@ -1,22 +1,22 @@
 import pygame
-
+#loading background layers and making sure addresses are portable as they refer to the files within the actual game folder.
 img_bg = pygame.image.load(
-    "C:/Comp_Sci_NEA/assets/images/Background/parallax_mountain_pack/layers/parallax-mountain-bg.png"
+    "assets\\images\\background\\parallax_mountain_pack\\layers\\parallax-mountain-bg.png"
     ).convert()
 
 img_fg = pygame.image.load(
-    "C:/Comp_Sci_NEA/assets/images/Background/parallax_mountain_pack/layers/parallax-mountain-foreground-trees.png"
+    "assets\\images\\background\\parallax_mountain_pack\\layers\\parallax-mountain-foreground-trees.png"
     ).convert_alpha()
 
 img_far_mountains = pygame.image.load(
-    "C:/Comp_Sci_NEA/assets/images/Background/parallax_mountain_pack/layers/parallax-mountain-montain-far.png"
+    "assets\\images\\background\\parallax_mountain_pack\\layers\\parallax-mountain-montain-far.png"
     ).convert_alpha()
 
-img_mountains = pygame.image.load("C:/Comp_Sci_NEA/assets/images/Background/parallax_mountain_pack/layers/parallax-mountain-mountains.png"
+img_mountains = pygame.image.load("assets\\images\\background\\parallax_mountain_pack/layers/parallax-mountain-mountains.png"
     ).convert_alpha()
 
 img_trees = pygame.image.load(
-    "C:/Comp_Sci_NEA/assets/images/Background/parallax_mountain_pack/layers/parallax-mountain-trees.png"
+    "assets\\images\\background\\parallax_mountain_pack\\layers\\parallax-mountain-trees.png"
     ).convert_alpha()
 
 background = [

@@ -30,6 +30,7 @@ class WindowManager:
         self.events = events
         self.new_state = self.get_window().event_handler(self.events)
         if self.new_state: #if true then there is a new state
+            del self.windows[self.state]
             self.state = self.new_state
 
     def draw(self):
@@ -97,10 +98,10 @@ class MainMenu(Button):
         self.transform_background_to_window_size()
         #buttons
         self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
-        self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', "Start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
-        self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', "Controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
-        self.settings_button = self.create_rect((960, 680), (255, 70), '#ffffff', "Settings", self.font, 5, offset_y=4)
-        self.exit_button = self.create_rect((960, 770), (255, 70), '#ffffff', "Exit", self.font, 5, offset_y=4)
+        self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', "start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
+        self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', "controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
+        self.settings_button = self.create_rect((960, 680), (255, 70), '#ffffff', "settings", self.font, 5, offset_y=4)
+        self.exit_button = self.create_rect((960, 770), (255, 70), '#ffffff', "exit", self.font, 5, offset_y=4)
         self.buttons = [self.start_button, self.controls_button, self.settings_button, self.exit_button]
         #plan to make a variable called self.gap possibly which uses the gap value if a button collides with another button
 
@@ -143,7 +144,7 @@ class MainMenu(Button):
                             return "controls"
                         elif btn["text"] == "settings":
                             return "settings"
-                        else:
+                        elif btn["text"] == "exit":
                             return "exit"
                 #check_click = print(event.pos, event.button)
         return None
@@ -175,10 +176,22 @@ class SettingsMenu(Button):
     def __init__(self, window, screen):
         super().__init__(screen)
         self.window = window
+        self.screen_width, self.screen_height = screen[0][0], screen[0][1]
+        #get configs for game
         self.config = ConfigParser()
+        self.config.read("assets\\game_settings\\settings.ini")
+        self.graphics = {}
+        self.sections = self.config.options("Graphics")
+        self.resolution = self.config.get("Graphics","resolution")
+        self.fullscreen = self.config.getboolean("Graphics","fullscreen")
+        self.fps = self.config.getint("Graphics","fps")
+        #reset background to white
+        self.colour = pygame.Color('#ffffff')
+        self.window.fill(self.colour)
+        #make button
+        self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
         self.back_btn = self.create_rect((150, 120), (175, 70), '#000000', "Back", self.font, 0, offset_y=4)
         self.buttons = [self.back_btn]
-        self.screen_width, self.screen_height = screen[0][0], screen[0][1]
 
     def event_handler(self, events):
         self.events = events
@@ -226,8 +239,18 @@ def main():
     pygame.init() #initiating pygame
     clock = pygame.time.Clock() #tool to control tick speed/fps/physics
     vector = pygame.math.Vector2  # import 2d assets from pygame
-    initial_win_res = pygame.display.list_modes()
-    window = pygame.display.set_mode(initial_win_res[0])
+    config = ConfigParser()
+    config.read("assets\\game_settings\\settings.ini")
+
+
+
+    screen_width = config.getint("Graphics", "screenwidth")
+    screen_height = config.getint("Graphics", "screenheight")
+    if config.getboolean("Graphics", "screenwidth"):
+        window = pygame.display.set_mode(([screen_width, screen_height]))
+
+    else:
+        window = pygame.display.set_mode(pygame.display.get_desktop_sizes()[0])
     manager = WindowManager(window)
 
     running = True
