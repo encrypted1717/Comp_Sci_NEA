@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+import os
 import pygame
 
 
@@ -239,18 +240,26 @@ def main():
     pygame.init() #initiating pygame
     clock = pygame.time.Clock() #tool to control tick speed/fps/physics
     vector = pygame.math.Vector2  # import 2d assets from pygame
+    #check if user settings are already created
     config = ConfigParser()
-    config.read("assets\\game_settings\\settings.ini")
-
-
-
-    screen_width = config.getint("Graphics", "screenwidth")
-    screen_height = config.getint("Graphics", "screenheight")
-    if config.getboolean("Graphics", "screenwidth"):
-        window = pygame.display.set_mode(([screen_width, screen_height]))
+    path = r"assets\\game_settings\\config_user.ini"
+    if os.path.isfile(path):
+        config.read("assets\\game_settings\\config_user.ini")
+        #get resolution
+        screen_width = config.getint("Graphics", "ScreenWidth")
+        screen_height = config.getint("Graphics", "ScreenHeight")
+        window = pygame.display.set_mode((screen_width, screen_height))
 
     else:
-        window = pygame.display.set_mode(pygame.display.get_desktop_sizes()[0])
+        desktop_width, desktop_height = pygame.display.get_desktop_sizes()[0]
+        window = pygame.display.set_mode((desktop_width, desktop_height))
+        # Save default resolution
+        config.set("Graphics", "ScreenWidth", str(desktop_width))
+        config.set("Graphics", "ScreenHeight", str(desktop_height))
+
+        with open("assets\\game_settings\\config_user.ini", "w") as save: # Makes sure file is saved even if errors occur
+            config.write(save)
+
     manager = WindowManager(window)
 
     running = True
@@ -260,8 +269,6 @@ def main():
         fps = clock.get_fps()
         #check_fps = print(f"{clock.tick(60)} and {fps} and {dt}") #check fps per second and dt value
         dt = fps / 1000  # converting to seconds
-        win_resolution = pygame.display.get_desktop_sizes()  # tuple of resolution set by windows, if more than one tuple then there is more than one display. checking in the loop checks for when you add or remove a monitor
-
 
         for event in events:
             if event.type == pygame.QUIT:
