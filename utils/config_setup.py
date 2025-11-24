@@ -1,3 +1,5 @@
+import os
+import pygame
 from configparser import ConfigParser
 
 
@@ -11,16 +13,16 @@ class Configuration:
         if os.path.isfile(self.path):
             self.config.read("assets\\game_settings\\config_user.ini")
             #get resolution
-            self.screen_width = config.getint("Graphics", "Screen_Width")
-            self.screen_height = config.getint("Graphics", "Screen_Height")
+            self.screen_width = self.config.getint("Graphics", "Screen_Width")
+            self.screen_height = self.config.getint("Graphics", "Screen_Height")
 
         else:
             self.screen_width, self.screen_height = pygame.display.get_desktop_sizes()[0]
             # Save default resolution
-            self.config["Graphics"] = {"Screen_Width": str(screen_width), "Screen_Height": str(screen_height)}
+            self.config["Graphics"] = {"Screen_Width": str(self.screen_width), "Screen_Height": str(self.screen_height)}
 
-            with open("assets\\game_settings\\config_user.ini", "w") as self.save: # Makes sure file is saved even if errors occur
-                self.config.write(self.save)
+            with open("assets\\game_settings\\config_user.ini", "w") as save: # Makes sure file is saved even if errors occur
+                self.config.write(save)
 
     def get_screen(self):
         return self.screen_width, self.screen_height
