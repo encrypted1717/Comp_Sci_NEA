@@ -17,11 +17,11 @@ class MainMenu(Button):
         self.scale_width = None  # default scale
         self.transform_background_to_window_size()
         #buttons
-        self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
-        self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', '#ffffff', "start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
-        self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', '#ffffff', "controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
-        self.settings_button = self.create_rect((960, 680), (255, 70), '#ffffff', '#ffffff', "settings", self.font, 5, offset_y=4)
-        self.exit_button = self.create_rect((960, 770), (255, 70), '#ffffff','#ffffff' , "exit", self.font, 5, offset_y=4)
+        self.font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 43)
+        self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', '#ffffff', "Start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
+        self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', '#ffffff', "Controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
+        self.settings_button = self.create_rect((960, 680), (255, 70), '#ffffff', '#ffffff', "Settings", self.font, 5, offset_y=4)
+        self.exit_button = self.create_rect((960, 770), (255, 70), '#ffffff','#ffffff' , "Exit", self.font, 5, offset_y=4)
         self.buttons = [self.start_button, self.controls_button, self.settings_button, self.exit_button]
         #plan to make a variable called self.gap possibly which uses the gap value if a button collides with another button
 
@@ -58,13 +58,13 @@ class MainMenu(Button):
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: #if user left clicks mouse
                 for btn in self.buttons:
                     if btn["rect"].collidepoint(event.pos): #if colliding with any menu buttons... open that menu
-                        if btn["text"] == "start":
+                        if btn["text"].lower() == "start":
                             return "start"
-                        elif btn["text"] == "controls":
+                        elif btn["text"].lower() == "controls":
                             return "controls"
-                        elif btn["text"] == "settings":
+                        elif btn["text"].lower() == "settings":
                             return "settings"
-                        elif btn["text"] == "exit":
+                        elif btn["text"].lower() == "exit":
                             return "exit"
                 #check_click = print(event.pos, event.button)
         return None

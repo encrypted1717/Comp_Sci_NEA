@@ -46,3 +46,8 @@ class Button(pygame.sprite.Sprite):
         #dictionary holds all data of the button
         self.btn = {"text": self.text, "text surf" : self.text_surf, "text rect": self.text_rect, "colour" : self.rect_colour, "rect" : self.rect, "border" : self.border}
         return self.btn
+
+    def update_txt(self, btn, txt, colour, rect):
+        self.text_surf = font.render(txt, False, colour)
+        self.text_rect = self.text_surf.get_rect(center=rect.center)
+

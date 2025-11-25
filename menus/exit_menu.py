@@ -7,7 +7,7 @@ class ExitMenu(Button):
         super().__init__(window)
         self.window = window
         self.events = None
-        self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
+        self.font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 43)
         self.confirmation_btn = self.create_rect((960, 540), (550, 120), '#ffffff', '#000000', "Are you sure you want to exit", self.font, 0, offset_y=4)
         self.back_btn = self.create_rect((150, 120), (175, 70), '#ffffff', '#000000', "Back", self.font, 0, offset_y=4)
         self.buttons = [self.confirmation_btn, self.back_btn]
