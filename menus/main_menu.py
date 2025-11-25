@@ -18,10 +18,10 @@ class MainMenu(Button):
         self.transform_background_to_window_size()
         #buttons
         self.font = pygame.font.Font("assets/fonts/OldeTome.ttf", 43)
-        self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', "start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
-        self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', "controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
-        self.settings_button = self.create_rect((960, 680), (255, 70), '#ffffff', "settings", self.font, 5, offset_y=4)
-        self.exit_button = self.create_rect((960, 770), (255, 70), '#ffffff', "exit", self.font, 5, offset_y=4)
+        self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', '#ffffff', "start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
+        self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', '#ffffff', "controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
+        self.settings_button = self.create_rect((960, 680), (255, 70), '#ffffff', '#ffffff', "settings", self.font, 5, offset_y=4)
+        self.exit_button = self.create_rect((960, 770), (255, 70), '#ffffff','#ffffff' , "exit", self.font, 5, offset_y=4)
         self.buttons = [self.start_button, self.controls_button, self.settings_button, self.exit_button]
         #plan to make a variable called self.gap possibly which uses the gap value if a button collides with another button
 
