@@ -8,7 +8,12 @@ def main():
     vector = pygame.math.Vector2  # import 2d assets from pygame
     #check if user settings are already created
     config = Configuration()
-    screen_width, screen_height = config.get_screen()
+    if not config.open_file("assets\\game_settings\\config_user.ini"):
+        screen_width, screen_height = pygame.display.get_desktop_sizes()[0]
+        config.set_value({"Graphics" : {"Screen_Width" : screen_width, "Screen_Height" : screen_height}})
+    else:
+        screen_width = self.config.get_value("Graphics","Screen_Width", "int")
+        screen_height = self.config.get_value("Graphics","Screen_Height", "int")
 
     window = pygame.display.set_mode((screen_width, screen_height))
 
