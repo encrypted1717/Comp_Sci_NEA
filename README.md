@@ -1,0 +1,1 @@
+My first proper python project which I have to submit as coursework, however, will attempt to release this as an official free game on steam hopefully.
