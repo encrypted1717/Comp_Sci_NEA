@@ -4,7 +4,7 @@ from graphics.parallax_background import Background
 
 class MainMenu(Button):
     def __init__(self, window, screen):
-        super().__init__(window)
+        super().__init__()
         self.new_window = None
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
         self.events = None
@@ -38,8 +38,8 @@ class MainMenu(Button):
     def draw_buttons(self):
         if self.buttons: #if list isn't empty then...
             for btn in self.buttons:
-                pygame.draw.rect(self.window, btn["colour"], btn["rect"], btn["border"])
-                self.window.blit(btn["text surf"], btn["text rect"]) #dictionary received from button class returns the text to put in the button and the type of rectangle
+                pygame.draw.rect(self.window, btn["rect_colour"], btn["rect"], btn["border"])
+                self.window.blit(btn["text_surf"], btn["text_rect"]) #dictionary received from button class returns the text to put in the button and the type of rectangle
 
     def transform_background_to_window_size(self):
         for layer in self.dict_background:

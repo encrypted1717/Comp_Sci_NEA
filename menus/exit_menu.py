@@ -4,7 +4,7 @@ from core.button import Button
 
 class ExitMenu(Button):
     def __init__(self, window):
-        super().__init__(window)
+        super().__init__()
         self.window = window
         self.events = None
         self.font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 43)
@@ -25,5 +25,5 @@ class ExitMenu(Button):
 
     def draw(self):
         for btn in self.buttons:
-            pygame.draw.rect(self.window, btn["colour"], btn["rect"], btn["border"])
-            self.window.blit(btn["text surf"], btn["text rect"])
+            pygame.draw.rect(self.window, btn["rect_colour"], btn["rect"], btn["border"])
+            self.window.blit(btn["text_surf"], btn["text_rect"])

@@ -3,9 +3,9 @@ from core.button import Button
 
 
 class ControlsMenu(Button):
-    def __init__(self, window, screen):
-        super().__init__(window)
-        self.screen_width, self.screen_height = screen[0][0], screen[0][1]
+    def __init__(self, window):
+        super().__init__()
+        self.window = window
 
     def event_handler(self):
         return "controls"

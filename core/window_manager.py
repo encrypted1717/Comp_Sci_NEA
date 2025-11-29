@@ -21,11 +21,11 @@ class WindowManager:
             if self.state == "main_menu":
                 self.windows["main_menu"] = MainMenu(self.window, self.win_res)
             elif self.state == "start":
-                self.windows["start"] = Game(self.window, self.win_res)
+                self.windows["start"] = Game(self.window)
             elif self.state == "controls":
-                self.windows["controls"] = ControlsMenu(self.window, self.win_res)
+                self.windows["controls"] = ControlsMenu(self.window)
             elif self.state == "settings":
-                self.windows["settings"] = SettingsMenu(self.window, self.win_res)
+                self.windows["settings"] = SettingsMenu(self.window)
             else:
                 self.windows["exit"] = ExitMenu(self.window)
         return self.windows[self.state]

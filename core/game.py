@@ -1,3 +1,5 @@
+from core.button import Button
+
 class Game(Button):
     def __init__(self, window, screen):
         super().__init__(window)
@@ -5,3 +7,6 @@ class Game(Button):
 
     def event_handler(self):
         return "start"
+
+    def draw(self):
+        pass
