@@ -1,5 +1,6 @@
 import pygame
 from configparser import ConfigParser
+from core.config_manager import ConfigManager
 from core.button import Button
 
 
@@ -14,7 +15,6 @@ class SettingsMenu(Button):
         self.config.read("assets\\game_settings\\config_user.ini")
         self.width = self.config.getint("Graphics", "Screen_Width")
         self.height = self.config.getint("Graphics", "Screen_Height")
-
         #reset background to white
         self.colour = pygame.Color('#ffffff')
         self.window.fill(self.colour)

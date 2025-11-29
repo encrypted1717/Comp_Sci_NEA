@@ -1,8 +1,10 @@
 import pygame
+from core.game import Game
 from menus.main_menu import MainMenu
 from menus.controls_menu import ControlsMenu
 from menus.settings_menu import SettingsMenu
 from menus.exit_menu import ExitMenu
+
 
 #WindowManager handles everything to do with the windows (i.e. switching/creating/deleting windows
 class WindowManager:
@@ -19,7 +21,7 @@ class WindowManager:
             if self.state == "main_menu":
                 self.windows["main_menu"] = MainMenu(self.window, self.win_res)
             elif self.state == "start":
-                self.windows["start"] = StartMenu(self.window, self.win_res)
+                self.windows["start"] = Game(self.window, self.win_res)
             elif self.state == "controls":
                 self.windows["controls"] = ControlsMenu(self.window, self.win_res)
             elif self.state == "settings":

@@ -1,19 +1,20 @@
 import pygame
 from core.window_manager import WindowManager
-from utils.config_setup import Configuration
+from core.config_manager import ConfigManager
 
 def main():
     pygame.init() #initiating pygame
     clock = pygame.time.Clock() #tool to control tick speed/fps/physics
     vector = pygame.math.Vector2  # import 2d assets from pygame
     #check if user settings are already created
-    config = Configuration()
-    if not config.open_file("assets\\game_settings\\config_user.ini"):
-        screen_width, screen_height = pygame.display.get_desktop_sizes()[0]
-        config.set_value({"Graphics" : {"Screen_Width" : screen_width, "Screen_Height" : screen_height}})
+    config_manager = ConfigManager()
+    if config_manager.open_file("assets\\game_settings\\config_user.ini"):
+        config = config_manager.get_config()
+        screen_width = config.getint("Graphics", "Screen_Width")
+        screen_height = config.getint("Graphics", "Screen_Height")
     else:
-        screen_width = self.config.get_value("Graphics","Screen_Width", "int")
-        screen_height = self.config.get_value("Graphics","Screen_Height", "int")
+        screen_width, screen_height = pygame.display.get_desktop_sizes()[0]
+        config_manager.set_value({"Graphics": {"Screen_Width": screen_width, "Screen_Height": screen_height}})
 
     window = pygame.display.set_mode((screen_width, screen_height))
 
