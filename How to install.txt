@@ -3,6 +3,6 @@
 3. Once open, pygame-ce is required however normal pygame may work (not tested)
 4. If not installed already close pycharm and then open command prompt
 5. Enter the directory of the folder by typing: cd (directory)
-6. Then type the directory of the activate file within the venv by itself. This is always within the Scipts folder for example: C:\Comp_Sci_NEA\.venv\Scripts\activate
+6. Then type the directory of the activate file within the venv by itself. This is always within the Scripts folder for example: C:\Comp_Sci_NEA\.venv\Scripts\activate
 7. This would have activated the venv which should change your console to (venv) then the directory... now type: pip install pygame-ce
 8. All done now you can close the command prompt and re-open pycharm.
