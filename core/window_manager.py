@@ -16,7 +16,8 @@ class WindowManager:
         self.windows = {"main_menu" : MainMenu(self.window, self.win_res)} #windows that are preloaded
         self.new_state = None
 
-    def get_window(self): #or create/load anything that isn't already loaded into the windows
+    # Create/load anything that isn't already loaded into the windows
+    def get_window(self):
         if self.state not in self.windows:
             if self.state == "main_menu":
                 self.windows["main_menu"] = MainMenu(self.window, self.win_res)
@@ -37,5 +38,5 @@ class WindowManager:
             del self.windows[self.state]
             self.state = self.new_state
 
-    def draw(self):
-        self.get_window().draw()
+    def draw(self, dt):
+        self.get_window().draw(dt)

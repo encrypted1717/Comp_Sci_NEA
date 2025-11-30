@@ -25,11 +25,11 @@ class Background:
             ).convert_alpha()
 
         self.__background = [
-            {"img": self.__img_bg, "speed": 0.05, "x": -1150},  #could have a less complex data structure but this wouldn't allow me to have different speeds or wtv
-            {"img": self.__img_far_mountains, "speed": 0.3, "x": 0},
-            {"img": self.__img_mountains, "speed": 0.5, "x": 0},
-            {"img": self.__img_trees, "speed": 0.8, "x": 0},
-            {"img": self.__img_fg, "speed": 3, "x": 0} #have to include factor of y to minus when scaling
+            {"img": self.__img_bg, "speed": 3, "x": -1150},  #could have a less complex data structure but this wouldn't allow me to have different speeds or wtv
+            {"img": self.__img_far_mountains, "speed": 18, "x": 0},
+            {"img": self.__img_mountains, "speed": 30, "x": 0},
+            {"img": self.__img_trees, "speed": 48, "x": 0},
+            {"img": self.__img_fg, "speed": 180, "x": 0} #have to include factor of y to minus when scaling
             ]
 
     def convert_background(self):

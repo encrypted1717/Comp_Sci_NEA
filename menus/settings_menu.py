@@ -2,11 +2,12 @@ import pygame
 from core.config_manager import ConfigManager
 from core.button import Button
 
-
+#TODO Settings should update changes to file
+#TODO Introduce more settings
 class SettingsMenu(Button):
     def __init__(self, window):
         super().__init__()
-        self.events = None
+        self.dt = None
         self.window = window
         #get configs for game
         self.config_manager = ConfigManager()
@@ -30,8 +31,7 @@ class SettingsMenu(Button):
         self.buttons = [self.back_btn, self.graphics_btn, self.resolution_txt, self.resolution_btn]
 
     def event_handler(self, events):
-        self.events = events
-        for event in self.events:
+        for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # if user left clicks mouse
                 if self.resolution_btn["rect"].collidepoint(event.pos):
                     self.resolution_btn = self.update_text(self.resolution_btn, "1280 x 720", '#000000', self.resolution_font)
@@ -40,7 +40,8 @@ class SettingsMenu(Button):
             # check_click = print(event.pos, event.button)
         return None
 
-    def draw(self):
+    def draw(self, dt):
+        self.dt = dt
         for btn in self.buttons:
             pygame.draw.rect(self.window, btn["rect_colour"], btn["rect"], btn["border"])
             self.window.blit(btn["text_surf"], btn["text_rect"])

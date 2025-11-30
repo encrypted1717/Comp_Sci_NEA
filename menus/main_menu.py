@@ -10,6 +10,7 @@ class MainMenu(Button):
         self.events = None
         self.window = window
         #parallax background
+        self.dt = None
         self.background = Background()
         self.dict_background = self.background.get_background()
         self.scale = None
@@ -28,7 +29,7 @@ class MainMenu(Button):
     def draw_background(self):
         #TODO could implement pygame sprites for this instead using spite.kill ... would have to see which is more efficient
         for layer in self.dict_background:
-            layer["x"] -= layer["speed"] #x value is the coordinate on the screen which gets reduced by the value speed
+            layer["x"] -= layer["speed"] * self.dt #x value is the coordinate on the screen which gets reduced by the value speed
             if layer["x"] <= -layer["img"].get_width():
                 layer["x"] = 0 #reset scrolling if image off the screen/less than the x dimension of the image
 
@@ -69,6 +70,7 @@ class MainMenu(Button):
                 #check_click = print(event.pos, event.button)
         return None
 
-    def draw(self):
+    def draw(self, dt):
+        self.dt = dt
         self.draw_background() #keep loading background
         self.draw_buttons() #keep loading buttons
