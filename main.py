@@ -31,8 +31,8 @@ def main():
     running = True
 
     while running:
-        clock.tick(60)  # sets tick speed and returns number of milliseconds passed from last time tick was called put fps instead of clock tick
-        # Calc delta time
+        clock.tick(60)  # Sets tick speed and fps
+        # Calc delta time in milliseconds
         now = time.time()
         dt = now - prev_time
         prev_time = now

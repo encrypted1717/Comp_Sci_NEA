@@ -7,8 +7,12 @@ class Entity(pygame.sprite.Sprite):
         self.position = position
         self.speed = speed
 
-    def get_entity(self):
+    def get_position(self):
         return self.position
+
+    def set_position(self, position):
+        self.position = position
+
 
     def update(self):
         pass
