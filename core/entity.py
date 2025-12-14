@@ -10,18 +10,19 @@ class Entity(pygame.sprite.Sprite):
         self.keys = None
         self.events = None
         # Setup animations
-        self.animation_manager = AnimationManager(0.2)
-        self.animation_manager.load_animation("default", "assets\\characters\\default\\fighting\\Animations\\punch_1.png", scale = 3.0, frame_indices = [0])
-        self.animation_manager.load_animation("punch_1", "assets\\characters\\default\\fighting\\Animations\\punch_1.png", scale = 3.0)
-        self.animation_manager.load_animation("jump", "assets\\characters\\default\\movement\\Animations\\upward_jump.png", scale = 3.0)
-        self.animation_manager.set_animation("default", loop = True, reset = False)
+        self.animation_manager = AnimationManager()
+        self.animation_manager.load_animation("default", "assets\\characters\\default\\fighting\\Animations\\punch_1.png", scale = 2.0, frame_indices = [0])
+        self.animation_manager.load_animation("punch_1", "assets\\characters\\default\\fighting\\Animations\\punch_1.png", scale = 2.0)
+        self.animation_manager.load_animation("jump", "assets\\characters\\default\\movement\\Animations\\upward_jump.png", scale = 2.0, frame_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0])
+        self.animation_manager.load_animation("double_jump")
+        self.animation_manager.set_animation("default", reset = False)
         # Kinematic vectors / equations
         self.position = self.vector(start_position)
         self.velocity = self.vector(0, 0) # No moving at the start
         self.acceleration = self.vector(0, 0) # No accel at the start
         # Kinematic constants
-        self.horizontal_acceleration = 500.0
-        self.horizontal_friction = 50 # Depending on the situation this is also air resistance
+        self.horizontal_acceleration = 2000.0
+        self.horizontal_friction = 11 # Depending on the situation this is also air resistance
 
     def event_handler(self, events):
         self.acceleration = self.vector(0, 0)
@@ -37,17 +38,15 @@ class Entity(pygame.sprite.Sprite):
 
         # Handle discrete actions (jump, attack, etc.)
         self.events = events
+        for event in self.events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w:  # Jump
+                    self.animation_manager.set_animation("jump")
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                self.animation_manager.set_animation("punch_1")
         if not self.animation_manager.is_playing():
-            for event in self.events:
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_w:  # Jump
-                        self.animation_manager.set_animation("jump")
-
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    self.animation_manager.set_animation("punch_1")
-
-                else:
-                    self.animation_manager.set_animation("default")
+            self.animation_manager.set_animation("default")
 
     def update(self, dt):
         self.dt = dt
@@ -55,7 +54,7 @@ class Entity(pygame.sprite.Sprite):
         self.acceleration.x -= self.velocity.x * self.horizontal_friction  # Faster you move friction is experienced
         self.velocity += self.acceleration * self.dt  # Add vectors together
         self.position += self.velocity * self.dt + 0.5 * self.acceleration * (self.dt ** 2)
-        self.animation_manager.update(self.dt)
+        self.animation_manager.update(self.dt, 70)
         self.frame = self.animation_manager.get_frame()
         self.rect = self.frame.get_rect(bottomleft=self.position)
 

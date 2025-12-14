@@ -2,13 +2,12 @@ import pygame
 import logging
 
 class AnimationManager:
-    def __init__(self, animation_cooldown : float = 0.2) -> None:
+    def __init__(self) -> None:
         # Logging setup
         self.log = logging.getLogger(__name__)
         self.log.info("Initialising Animation Manager module")
 
         # Animation setup
-        self.animation_cooldown = animation_cooldown # Seconds per frame
         self.animations = {}
         self.elapsed_time = 0
         self.current_frame = 0
@@ -18,7 +17,7 @@ class AnimationManager:
         self.freeze = False
 
     # Gets spritesheet and returns frames of the animation, frames have to be square
-    def load_animation(self, name: str, path: str, scale: float = 1.0, frame_indices: list = None, dimension: int = None) -> None:
+    def load_animation(self, name: str, path: str, scale: float = 1.0, frame_indices: list | tuple = None, dimension: int = None) -> None:
         """
                 Load an animation from a single-row sprite sheet of square frames.
 
@@ -44,6 +43,7 @@ class AnimationManager:
 
         # Store each frame
         frames = []
+
         for index in frame_indices:
             if index < 0 or index >= total_frames:
                 self.log.warning("Frame index %s out of range for file: %s", index, path)
@@ -62,7 +62,7 @@ class AnimationManager:
 
         self.animations[name] = frames
 
-    def set_animation(self, name: str, loop = True, reset = True) -> None:
+    def set_animation(self, name: str, loop = False, reset = True) -> None:
         """
                 Switch to a named animation.
 
@@ -92,10 +92,11 @@ class AnimationManager:
     def play(self) -> None:
         self.freeze = False
 
-    def update(self, dt) -> None:
+    def update(self, dt, cooldown : float = 1) -> None: # cooldown is in seconds
+
         if not self.freeze and self.current_animation_frames:
             self.elapsed_time += dt
-            if self.elapsed_time >= self.animation_cooldown:
+            if self.elapsed_time >= cooldown / 1000: # Cooldown converted to ms
                 self.elapsed_time = 0
                 self.current_frame += 1
                 if self.current_frame >= len(self.current_animation_frames):
@@ -115,7 +116,7 @@ class AnimationManager:
     def get_name(self):
         return self.current_animation_name
 
-    # Check animation is looping or hasn't reached the end in non-looping mode.
+    # Check if an animation isn't looping or has reached the end of its frames.
     def is_playing(self) -> bool:
         if self.freeze:
             return False
