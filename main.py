@@ -14,7 +14,7 @@ def get_settings():
         #fps = config.getint("Window", "FPS")
     else:
         width, height = pygame.display.get_desktop_sizes()[0]
-        config_manager.set_value({"Graphics": {"Screen_Width": screen_width, "Screen_Height": screen_height}})
+        config_manager.set_value({"Graphics": {"Screen_Width": width, "Screen_Height": height}})
         config_manager.open_file("assets\\game_settings\\config_default.ini")
         config = config_manager.get_config()
         #fps = config.getint("Window", "FPS")
@@ -30,15 +30,15 @@ def main():
     log = logging.getLogger(__name__)
     log.info("Starting game")
     pygame.init() #initiating pygame
-    clock = pygame.time.Clock() #tool to control tick speed/fps/physics
+    clock = pygame.time.Clock() # Controls tick speed
     prev_time = time.time()
     screen_width, screen_height = get_settings() #check if user settings are already created
     fps = 60
-    window = pygame.display.set_mode((screen_width, screen_height))
+    display = pygame.display.set_mode((screen_width, screen_height))
     log.info("Screen setup with resolution: %s x %s", screen_width, screen_height)
 
     # WindowManager handles everything to do with the windows (i.e. switching/creating/deleting windows)
-    manager = WindowManager(window)
+    manager = WindowManager(display)
     running = True
 
     while running:
@@ -53,10 +53,11 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        window.fill((255, 255, 255)) # Clear screen with white background
-        manager.set_window(events)
+        display.fill((255, 255, 255)) # Clear screen with white background
+        manager.update_window(events)
         manager.draw(dt)
         pygame.display.flip()
+    pygame.quit()
 
 if __name__ == "__main__":
     main()
