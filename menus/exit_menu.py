@@ -3,10 +3,10 @@ from core.button import Button
 
 
 class ExitMenu(Button):
-    def __init__(self, window):
+    def __init__(self, display):
         super().__init__()
         self.dt = None
-        self.window = window
+        self.display = display
         self.events = None
         self.font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 43)
         self.confirmation_btn = self.create_rect((960, 540), (550, 120), '#ffffff', '#000000', "Are you sure you want to exit", self.font, 0, offset_y=4)
@@ -27,5 +27,5 @@ class ExitMenu(Button):
     def draw(self, dt):
         self.dt = dt
         for btn in self.buttons:
-            pygame.draw.rect(self.window, btn["rect_colour"], btn["rect"], btn["border"])
-            self.window.blit(btn["text_surf"], btn["text_rect"])
+            pygame.draw.rect(self.display, btn["rect_colour"], btn["rect"], btn["border"])
+            self.display.blit(btn["text_surf"], btn["text_rect"])

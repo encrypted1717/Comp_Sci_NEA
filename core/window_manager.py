@@ -8,35 +8,33 @@ from menus.exit_menu import ExitMenu
 
 #WindowManager handles everything to do with the windows (i.e. switching/creating/deleting windows
 class WindowManager:
-    def __init__(self, window):
-        self.events = None
-        self.window = window
+    def __init__(self, display):
+        self.display = display
         self.state = "main_menu" #defaults to this
-        self.win_res = pygame.display.list_modes()
-        self.windows = {"main_menu" : MainMenu(self.window, self.win_res)} #windows that are preloaded
-        self.new_state = None
+        self.resolution = pygame.display.list_modes()
+        self.windows = {"main_menu" : MainMenu(self.display, self.resolution)} #windows that are preloaded
 
     # Create/load anything that isn't already loaded into the windows
-    def get_window(self):
+    # noinspection PyTypeChecker
+    def __get_window(self):
         if self.state not in self.windows:
             if self.state == "main_menu":
-                self.windows["main_menu"] = MainMenu(self.window, self.win_res)
+                self.windows["main_menu"] = MainMenu(self.display, self.resolution)
             elif self.state == "start":
-                self.windows["start"] = Game(self.window)
+                self.windows["start"] = Game(self.display)
             elif self.state == "controls":
-                self.windows["controls"] = ControlsMenu(self.window)
+                self.windows["controls"] = ControlsMenu(self.display)
             elif self.state == "settings":
-                self.windows["settings"] = SettingsMenu(self.window)
+                self.windows["settings"] = SettingsMenu(self.display)
             else:
-                self.windows["exit"] = ExitMenu(self.window)
+                self.windows["exit"] = ExitMenu(self.display)
         return self.windows[self.state]
 
-    def set_window(self, events):
-        self.events = events
-        self.new_state = self.get_window().event_handler(self.events)
-        if self.new_state: #if true then there is a new state
+    def update_window(self, events):
+        new_state = self.__get_window().event_handler(events)
+        if new_state: #if true then there is a new state
             del self.windows[self.state]
-            self.state = self.new_state
+            self.state = new_state
 
     def draw(self, dt):
-        self.get_window().draw(dt)
+        self.__get_window().draw(dt)
