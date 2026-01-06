@@ -22,7 +22,7 @@ class Entity(pygame.sprite.Sprite):
         # Kinematic constants
         self.horizontal_acceleration = 2000.0
         self.horizontal_friction = 11 # Depending on the situation this is also air resistance
-        self.jump_force = 300
+        self.jump_force = 600
         self.double_jump_force = 100
         self.gravity = 1250
         # Setup sprite
