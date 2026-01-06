@@ -2,10 +2,10 @@ import pygame
 from graphics.animation_manager import AnimationManager
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, start_position: tuple):
+    def __init__(self, start_position: tuple, sprite_type: str):
         super().__init__()
         self.vector = pygame.math.Vector2
-        self.flip_x = False
+        self.flip_x = False # facing left or right (right is false)
         self.dt = None
         self.keys = None
         self.events = None
@@ -23,17 +23,21 @@ class Entity(pygame.sprite.Sprite):
         self.horizontal_acceleration = 2000.0
         self.horizontal_friction = 11 # Depending on the situation this is also air resistance
         self.jump_force = 300
-        self.double_jump_force = 250
+        self.double_jump_force = 100
         self.gravity = 1250
-        # Setup player sprite
-        self.rect = pygame.rect.Rect(start_position, (128, 128))
+        # Setup sprite
+        self.sprite = sprite_type
+        self.rect = pygame.rect.Rect(start_position, (128, 128))  # size of player
         self.image = pygame.Surface(self.rect.size)
+        self.img_rect = None
+        # Movement
         self.position = self.vector(self.rect.midbottom)
         self.on_ground = False
         self.jumps = 2
         self.air_time = 0.0
         self.double_jump_delay = 0.01  # seconds
 
+    # noinspection PyTypeChecker
     def update(self, dt):
         self.dt = dt
         if not self.on_ground:
@@ -42,9 +46,6 @@ class Entity(pygame.sprite.Sprite):
             self.air_time = 0.0
         # Calc Jumping
         self.velocity.y += self.gravity * self.dt
-        self.position += self.velocity * self.dt
-        # noinspection PyTypeChecker
-        self.rect.midbottom = self.position
         # Calc new kinematics
         self.acceleration.x -= self.velocity.x * self.horizontal_friction  # Faster you move friction is experienced
         self.velocity += self.acceleration * self.dt  # Add vectors together
@@ -52,21 +53,34 @@ class Entity(pygame.sprite.Sprite):
         # Update Sprite
         self.animation_manager.update(self.dt, 0.05)
         self.image = pygame.transform.flip(self.animation_manager.get_frame(), self.flip_x, False)
-        self.rect = self.image.get_rect(midbottom = self.rect.midbottom)
+        self.img_rect = self.image.get_rect(midbottom = self.position)
+        self.rect = self.image.get_bounding_rect().move(self.img_rect.topleft) # used for collisions
 
     def event_handler(self, events):
         self.acceleration = self.vector(0, 0)
         self.keys = pygame.key.get_pressed()
-        if self.keys[pygame.K_a]:
+
+        moving_left = pygame.K_a
+        moving_right = pygame.K_d
+        moving_up = pygame.K_w
+        moving_down = pygame.K_s
+
+        if self.sprite == "player2":
+            moving_left = pygame.K_LEFT
+            moving_right = pygame.K_RIGHT
+            moving_up = pygame.K_UP
+            moving_down = pygame.K_DOWN
+
+        if self.keys[moving_left]:
             self.acceleration.x = -self.horizontal_acceleration
             self.flip_x = True
-        elif self.keys[pygame.K_d]:
+        elif self.keys[moving_right]:
             self.acceleration.x = self.horizontal_acceleration
             self.flip_x = False
         self.events = events
         for event in self.events:
                 # Jump / Double Jump
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_w:
+                if event.type == pygame.KEYDOWN and event.key == moving_up:
                     if self.jumps == 0:
                         self.velocity.y = -self.jump_force
                         self.animation_manager.set_animation("jump")
@@ -84,6 +98,3 @@ class Entity(pygame.sprite.Sprite):
 
         if not self.animation_manager.is_playing() or self.animation_manager.get_name() == "default":
             self.animation_manager.set_animation("default", restart = True)
-
-    def get_hitbox(self):
-        return self.rect

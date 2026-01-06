@@ -19,7 +19,9 @@ class Game(Button):
         self.config = self.config_manager.get_config()
         self.config_manager.open_file("assets\\game_settings\\config_user.ini")
         # Player setup
-        self.player = Entity((680, 450))
+        self.player = Entity((680, 450), "player1")
+        # Enemy setup
+        self.enemy = Entity((1000, 450), "player2")
         # Setup static objects
         self.ground = Collider(pygame.Rect(0, 1080, 1920, 100), "ground")
         # Setup collisions
@@ -28,6 +30,7 @@ class Game(Button):
 
         self.entities = pygame.sprite.Group()
         self.entities.add(self.player)
+        self.entities.add(self.enemy)
 
         self.collision_manager = CollisionManager(self.entities, self.colliders)
 
@@ -53,7 +56,7 @@ class Game(Button):
         self.dt = dt
         self.colliders.draw(self.display)
         self.entities.update(self.dt)
-        self.collision_manager.resolve_entity()
-        self.entities.draw(self.display)
+        self.collision_manager.resolve_entity(self.dt)
         for entity in self.entities:
-            pygame.draw.rect(self.display,(255, 0, 0), entity.rect, 5)
+            self.display.blit(entity.image, entity.img_rect.topleft)
+            pygame.draw.rect(self.display,(255, 0, 0), entity.rect, 5) # collision/hit box

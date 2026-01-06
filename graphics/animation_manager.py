@@ -94,43 +94,6 @@ class AnimationManager:
 
         self.animations[name] = frames
 
-    def set_animation(self,
-                      name: str,
-                      loop: bool = False,
-                      restart: bool = False
-                      ) -> None:
-        """
-            Switch to a named animation.
-
-            Sets the current animation to the specified one if it has been already loaded and stored.
-            If the animation is already active, it may optionally be restarted.
-
-            Args:
-                name: the name of the animation to set.
-                loop: whether the animation should loop when it reaches the end.
-                restart: whether to restart the animation. If False and the animation is already active, the current frame position is preserved.
-
-            Raises:
-                KeyError: If the specified animation has not been loaded.
-        """
-
-        if name not in self.animations:
-            self.log.error("Animation %s does not exist or hasn't been loaded", name)
-            raise KeyError(f"Animation {name} does not exist or hasn't been loaded")
-
-        if self.animations[name] != self.current_animation_frames:
-            self.current_animation_name = name
-            self.current_animation_frames = self.animations[name]
-            self.current_frame = 0
-            self.elapsed_time = 0
-
-        elif restart:
-            self.current_frame = 0
-            self.elapsed_time = 0
-
-        self.loop = loop
-        self.freeze = False
-
     def pause(self) -> None:
         """Pause animation on current frame"""
         self.freeze = True
@@ -171,6 +134,43 @@ class AnimationManager:
                         # freeze on last frame if not looping
                         self.current_frame = len(self.current_animation_frames) - 1
                         self.freeze = True
+
+    def set_animation(self,
+                      name: str,
+                      loop: bool = False,
+                      restart: bool = False
+                      ) -> None:
+        """
+            Switch to a named animation.
+
+            Sets the current animation to the specified one if it has been already loaded and stored.
+            If the animation is already active, it may optionally be restarted.
+
+            Args:
+                name: the name of the animation to set.
+                loop: whether the animation should loop when it reaches the end.
+                restart: whether to restart the animation. If False and the animation is already active, the current frame position is preserved.
+
+            Raises:
+                KeyError: If the specified animation has not been loaded.
+        """
+
+        if name not in self.animations:
+            self.log.error("Animation %s does not exist or hasn't been loaded", name)
+            raise KeyError(f"Animation {name} does not exist or hasn't been loaded")
+
+        if self.animations[name] != self.current_animation_frames:
+            self.current_animation_name = name
+            self.current_animation_frames = self.animations[name]
+            self.current_frame = 0
+            self.elapsed_time = 0
+
+        elif restart:
+            self.current_frame = 0
+            self.elapsed_time = 0
+
+        self.loop = loop
+        self.freeze = False
 
     def get_frame(self) -> pygame.Surface:
         """Returns the current frame."""
