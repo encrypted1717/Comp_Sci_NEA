@@ -2,27 +2,31 @@ import pygame
 from core.button import Button
 from graphics.parallax_background import Background
 
-class MainMenu(Button):
+class MainMenu:
     def __init__(self, display, screen):
-        super().__init__()
         self.screen_width, self.screen_height = screen[0][0], screen[0][1]
         self.events = None
         self.display = display
-        #parallax background
         self.dt = None
+        #parallax background
         self.background = Background()
         self.dict_background = self.background.get_background()
         self.scale = None
         self.scale_height = None
         self.scale_width = None  # default scale
         self.transform_background_to_display_size()
-        #buttons
+        #font
         self.font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 43)
-        self.start_button = self.create_rect((960, 500), (255, 70), '#ffffff', '#ffffff', "Start", self.font, 5, offset_y=4) #returns dict{"text": , "text rect": , "colour": , "rect": , "border"}
-        self.controls_button = self.create_rect((960, 590), (255, 70), '#ffffff', '#ffffff', "Controls", self.font, 5, offset_y=4) #position is 550, the previous y coordinate of the other button + their y dimension + a gap of 15
-        self.settings_button = self.create_rect((960, 680), (255, 70), '#ffffff', '#ffffff', "Settings", self.font, 5, offset_y=4)
-        self.exit_button = self.create_rect((960, 770), (255, 70), '#ffffff','#ffffff' , "Exit", self.font, 5, offset_y=4)
-        self.buttons = [self.start_button, self.controls_button, self.settings_button, self.exit_button]
+        #buttons
+        self.buttons = pygame.sprite.Group()
+        # noinspection PyTypeChecker
+        self.buttons.add(
+            Button((960, 500), (255, 70), "Start", self.font, "#ffffff", "#000000", 5, border_colour= "#ffffff", fill = False, offset_y = 4, action = "start", hover_text_colour = "#000000", hover_rect_colour = "#ffffff", hover_border_colour = "#000000", fill_on_hover = True),
+            Button((960, 590), (255, 70), "Controls", self.font, "#ffffff", "#000000", 5, border_colour= "#ffffff", fill = False, offset_y = 4, action = "controls", hover_text_colour = "#000000", hover_rect_colour = "#ffffff", hover_border_colour = "#000000", fill_on_hover = True),
+            Button((960, 680), (255, 70), "Settings", self.font, "#ffffff", "#000000", 5, border_colour= "#ffffff", fill = False, offset_y = 4, action = "settings", hover_text_colour = "#000000", hover_rect_colour = "#ffffff", hover_border_colour = "#000000", fill_on_hover = True),
+            Button((960, 770), (255, 70), "Exit", self.font, "#ffffff", "#000000", 5, border_colour= "#ffffff", fill = False, offset_y = 4, action = "exit", hover_text_colour = "#000000", hover_rect_colour = "#ffffff", hover_border_colour = "#000000", fill_on_hover = True),
+        )
+
         #plan to make a variable called self.gap possibly which uses the gap value if a button collides with another button
 
     def draw_background(self):
@@ -33,12 +37,6 @@ class MainMenu(Button):
 
             self.display.blit(layer["img"], (layer["x"], 0))  # draw first copy
             self.display.blit(layer["img"], (layer["x"] + layer["img"].get_width(), 0))  # draw second copy
-
-    def draw_buttons(self):
-        if self.buttons: #if list isn't empty then...
-            for btn in self.buttons:
-                pygame.draw.rect(self.display, btn["rect_colour"], btn["rect"], btn["border"])
-                self.display.blit(btn["text_surf"], btn["text_rect"]) #dictionary received from button class returns the text to put in the button and the type of rectangle
 
     # TODO fix sun appearing on both ends of the screen by scaling the image a bit larger
     def transform_background_to_display_size(self):
@@ -52,23 +50,15 @@ class MainMenu(Button):
             self.scale = 1 #updating/resetting scale
 
     def event_handler(self, events):
-        self.events = events
-        for event in self.events:
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: #if user left clicks mouse
-                for btn in self.buttons:
-                    if btn["rect"].collidepoint(event.pos): #if colliding with any menu buttons... open that menu
-                        if btn["text"].lower() == "start":
-                            return "start"
-                        elif btn["text"].lower() == "controls":
-                            return "controls"
-                        elif btn["text"].lower() == "settings":
-                            return "settings"
-                        elif btn["text"].lower() == "exit":
-                            return "exit"
-                #check_click = print(event.pos, event.button)
+        for event in events:
+            for btn in self.buttons:
+                action = btn.handle_event(event)
+                if action is not None:
+                    return action
         return None
 
     def draw(self, dt):
         self.dt = dt
         self.draw_background() #keep loading background
-        self.draw_buttons() #keep loading buttons
+        self.buttons.update(pygame.mouse.get_pos())
+        self.buttons.draw(self.display) #keep loading buttons

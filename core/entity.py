@@ -2,7 +2,7 @@ import pygame
 from graphics.animation_manager import AnimationManager
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, start_position: tuple, sprite_type: str):
+    def __init__(self, start_position: tuple, sprite_type: str, health=100):
         super().__init__()
         self.vector = pygame.math.Vector2
         self.flip_x = False # facing left or right (right is false)
@@ -23,13 +23,16 @@ class Entity(pygame.sprite.Sprite):
         self.horizontal_acceleration = 2000.0
         self.horizontal_friction = 11 # Depending on the situation this is also air resistance
         self.jump_force = 600
-        self.double_jump_force = 100
+        self.double_jump_force = 250
         self.gravity = 1250
         # Setup sprite
         self.sprite = sprite_type
         self.rect = pygame.rect.Rect(start_position, (128, 128))  # size of player
         self.image = pygame.Surface(self.rect.size)
         self.img_rect = None
+        # Sprite attributes
+        self.health = health
+        self.punch_1_damage = 6
         # Movement
         self.position = self.vector(self.rect.midbottom)
         self.on_ground = False
