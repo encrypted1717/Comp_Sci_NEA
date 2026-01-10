@@ -35,7 +35,6 @@ class CollisionManager:
 
     def __resolve_player(self, player1, player2):
         overlap = player1.rect.clip(player2.rect)
-
         # Decide axis
         if overlap.width < overlap.height:
             self.__resolve_horizontal_players(player1, player2, overlap.width)
