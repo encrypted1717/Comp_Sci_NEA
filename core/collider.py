@@ -6,5 +6,5 @@ class Collider(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.Surface(rect.size)
         self.image.fill(pygame.Color('brown'))
-        self.rect = self.image.get_rect(bottom=rect.top)
+        self.rect = rect.copy()
         self.collider_type = collider

@@ -5,6 +5,7 @@ from core.button import Button
 from core.collider import Collider
 from core.collision_manager import CollisionManager
 from core.combat_system import CombatSystem
+from core.map_generation import MapGeneration
 
 
 class Game:
@@ -18,7 +19,6 @@ class Game:
         # Fonts
         self.front_font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 56)
         self.num_font = pygame.font.Font("assets\\fonts\\Number_Font_Osadam\\Gothic_pixel_font.ttf", 16)
-
         # Setup configurations
         self.config_manager = ConfigManager()
         self.config = self.config_manager.get_config()
@@ -31,10 +31,10 @@ class Game:
         # TODO make health button have a percentage type meter that reduces as the player loses health... do this by making the health button invisible fill and then have another rect beneath it be a still colour and make rect reduce size by percentage of total health
         self.health2_btn = Button((1560, 120), (235, 70), f"Health: {str(self.player2.health)}", self.num_font, '#000000', '#ffffff', 5, border_colour = "#000000", offset_y=4)
         # Setup static objects
-        self.ground = Collider(pygame.Rect(0, 1080, 1920, 100), "ground")
+        #self.ground = Collider(pygame.Rect(0, 1080, 1920, 100), "ground")
         # Setup groups
         self.colliders = pygame.sprite.Group()
-        self.colliders.add(self.ground)
+        #self.colliders.add(self.ground)
         self.entities = pygame.sprite.Group()
         self.entities.add(self.player1)
         self.entities.add(self.player2)
@@ -44,6 +44,11 @@ class Game:
         self.collision_manager = CollisionManager(self.entities, self.colliders)
 
         # Map setup
+        self.map = MapGeneration(self.display)
+        self.map.create_map()
+
+        for tile in self.map.solid_tiles:
+            self.colliders.add(tile)
 
     def event_handler(self, events):
         self.events = events

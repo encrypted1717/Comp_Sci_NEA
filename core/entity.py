@@ -7,7 +7,7 @@ class Entity(pygame.sprite.Sprite):
         super().__init__()
         # Logging setup
         self.__log = logging.getLogger(__name__)
-        self.__log.info("Creating an entity sprite_type = %s pos = %s", sprite_type, start_position)
+        self.__log.info("Creating an entity: sprite_type = %s pos = %s", sprite_type, start_position)
         # Main setup
         self.vector = pygame.math.Vector2
         self.flip_x = False # facing left or right (right is false)
@@ -68,7 +68,7 @@ class Entity(pygame.sprite.Sprite):
         self.attack_name = None
         self.attack_id = 0 # Increments each time an attack starts
         self.combos = 0
-        self.__log.info("Entity created id = %s sprite_type = %s", id(self), sprite_type)
+        self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
 
     # noinspection PyTypeChecker
     def update(self, dt):
