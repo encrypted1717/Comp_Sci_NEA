@@ -13,6 +13,7 @@ class Game:
     def __init__(self, display):
         # Main Setup
         self.display = display
+        self.display_width, self.display_height = self.display.get_sizes()
         self.dt = 0 # Seconds
         self.events = None
         self.combat_system = CombatSystem()

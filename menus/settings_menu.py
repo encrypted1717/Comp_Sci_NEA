@@ -6,8 +6,8 @@ from core.button import Button
 #TODO Introduce more settings
 class SettingsMenu:
     def __init__(self, display):
-        self.dt = None
         self.display = display
+        self.dt = None
         #get configs for game
         self.config_manager = ConfigManager()
         self.config_manager.open_file("assets\\game_settings\\config_user.ini")
@@ -19,16 +19,62 @@ class SettingsMenu:
         #resolution setting setup
         self.resolution_font = "assets\\fonts\\Number_Font_Osadam\\Gothic_pixel_font.ttf"
         self.resolution_font = pygame.font.Font(self.resolution_font, 16)
-        self.resolution = str(self.screen_width) + " x " + str(self.screen_height)
+        self.resolution_value = str(self.screen_width) + " x " + str(self.screen_height)
         # Fonts
         self.font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 37)
         self.front_font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 56)
         # Button setup
         self.buttons = pygame.sprite.Group()
-        self.__back_btn = Button((150, 120), (160, 60),"Back", self.font,"#ffffff", '#000000', 5, border_colour = "#000000", offset_y = 4, action = "back", hover_text_colour = "#000000", hover_rect_colour = "#ffffff", hover_border_colour = "#000000", fill_on_hover = True)
-        self.__graphics_btn = Button((1920 / 2, 120), (235, 70), "Graphics", self.front_font,'#ffffff', '#000000', 0, offset_y = 4)
-        self.__resolution_value_btn = Button((1135, 350), (300, 60), self.resolution, self.resolution_font, '#000000', '#ffffff', 5, border_colour = "#000000", offset_y = 4, action = "cycle_resolution", hover_text_colour = "#ffffff", hover_rect_colour = "#000000", hover_border_colour = "#ffffff", fill_on_hover = True)
-        self.__resolution_btn = Button((785, 350), (300, 60),"Resolution", self.font,'#ffffff', '#000000', 0, offset_y = 4)
+        self.__back_btn = Button((150, 120),
+                                 (160, 60),
+                                 "Back",
+                                 self.font,
+                                 "#ffffff",
+                                 '#000000',
+                                 5,
+                                 border_colour = "#000000",
+                                 offset_y = 4,
+                                 action = "back",
+                                 hover_text_colour = "#000000",
+                                 hover_rect_colour = "#ffffff",
+                                 hover_border_colour = "#000000",
+                                 fill_on_hover = True
+                                 )
+
+        self.__graphics_btn = Button((1920 / 2, 120),
+                                     (235, 70),
+                                     "Graphics",
+                                     self.front_font,
+                                     '#ffffff',
+                                     '#000000',
+                                     0,
+                                     offset_y = 4
+                                     )
+
+        self.__resolution_btn = Button((785, 350),
+                                       (300, 60),
+                                       "Resolution",
+                                       self.font,
+                                       '#ffffff',
+                                       '#000000',
+                                       0,
+                                       offset_y=4
+                                       )
+
+        self.__resolution_value_btn = Button((1135, 350),
+                                             (300, 60),
+                                             self.resolution_value,
+                                             self.resolution_font,
+                                             '#000000',
+                                             '#ffffff',
+                                             5, border_colour = "#000000",
+                                             offset_y = 4,
+                                             action = "cycle_resolution",
+                                             hover_text_colour = "#ffffff",
+                                             hover_rect_colour = "#000000",
+                                             hover_border_colour = "#ffffff",
+                                             fill_on_hover = True
+                                             )
         # noinspection PyTypeChecker
         self.buttons.add(self.__back_btn, self.__graphics_btn, self.__resolution_value_btn, self.__resolution_btn)
 
