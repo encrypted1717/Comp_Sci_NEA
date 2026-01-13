@@ -4,21 +4,27 @@ import logging
 from core.window_manager import WindowManager
 from core.config_manager import ConfigManager
 
-
-def get_settings():
+# TODO fix logic as it is a bit off as after checking if files couldn't be open it doesn't make sense to attempt to open the path again
+def get_settings(path, logger):
     config_manager = ConfigManager()
-    if config_manager.open_file("assets\\game_settings\\config_user.ini"):
+    if config_manager.open_file(path):
         config = config_manager.get_config()
         width = config.getint("Graphics", "Screen_Width")
         height = config.getint("Graphics", "Screen_Height")
-        #fps = config.getint("Window", "FPS")
+        display_mode = config.get("Window", "Display_Mode")
+        fps = config.getint("Window", "FPS")
     else:
+        logger.warning("Could not open config file in path: %s", path)
         width, height = pygame.display.get_desktop_sizes()[0]
-        config_manager.set_value({"Graphics": {"Screen_Width": width, "Screen_Height": height}})
-        config_manager.open_file("assets\\game_settings\\config_default.ini")
+        display_mode = "Fullscreen"
+        fps = 60
+        config_manager.set_value({
+            "Graphics": {"Screen_Width": width, "Screen_Height": height},
+            "Window": {"Display_Mode": display_mode, "FPS": fps}
+        })
+        config_manager.open_file(path)
         config = config_manager.get_config()
-        #fps = config.getint("Window", "FPS")
-    return width, height
+    return width, height, display_mode, fps
 
 def main():
     logging.basicConfig(
@@ -32,17 +38,30 @@ def main():
     pygame.init() #initiating pygame
     clock = pygame.time.Clock() # Controls tick speed
     prev_time = time.time()
-    screen_width, screen_height = get_settings() #check if user settings are already created
-    fps = 60
-    display = pygame.display.set_mode((screen_width, screen_height))
-    log.info("Screen setup with resolution: %s x %s", screen_width, screen_height)
 
-    # WindowManager handles everything to do with the windows (i.e. switching/creating/deleting windows)
-    manager = WindowManager(display)
+    settings_path = "assets\\game_settings\\config_user.ini"
+    display_width, display_height, display_mode, fps = get_settings(settings_path, log) #check if user settings are already created
+    log.info("Settings have been loaded")
+
+    if display_mode == "Windowed":
+        flags = pygame.RESIZABLE
+    elif display_mode == "Borderless_Windowed":
+        flags = pygame.NOFRAME
+    elif display_mode in ("Fullscreen", "Default"):
+        flags = pygame.FULLSCREEN
+    else:
+        log.error("Unknown display mode: %s", display_mode)
+        raise ValueError(f"Unknown mode: {display_mode}")
+
+    display = pygame.display.set_mode((display_width, display_height), flags)
+    log.info("Display setup with resolution: %s x %s", display_width, display_height)
+    log.info("Display mode: %s", display_mode)
+    manager = WindowManager(display)  # WindowManager handles everything to do with the windows (i.e. switching/creating/deleting windows)
+
     running = True
-
     while running:
-        clock.tick(60)  # Sets tick speed and fps
+        clock.tick(fps)  # Sets tick speed and fps
+
         # Calc delta time in milliseconds
         now = time.time()
         dt = now - prev_time
