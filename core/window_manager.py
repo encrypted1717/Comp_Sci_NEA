@@ -11,15 +11,14 @@ class WindowManager:
     def __init__(self, display):
         self.display = display
         self.state = "main_menu" #defaults to this
-        self.resolution = pygame.display.list_modes()
-        self.windows = {"main_menu" : MainMenu(self.display, self.resolution)} #windows that are preloaded
+        self.windows = {"main_menu" : MainMenu(self.display)} #windows that are preloaded
 
     # Create/load anything that isn't already loaded into the windows
     # noinspection PyTypeChecker
     def __get_window(self):
         if self.state not in self.windows:
             if self.state == "main_menu":
-                self.windows["main_menu"] = MainMenu(self.display, self.resolution)
+                self.windows["main_menu"] = MainMenu(self.display)
             elif self.state == "start":
                 self.windows["start"] = Game(self.display)
             elif self.state == "controls":
