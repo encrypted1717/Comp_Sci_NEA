@@ -1,7 +1,8 @@
 import pygame
+from core.window import Window
 from core.button import Button
 from graphics.parallax_background import Background
-from core.window import Window
+
 
 class MainMenu(Window):
     def __init__(self, display):
@@ -11,7 +12,6 @@ class MainMenu(Window):
         self.bg.resize((self.display_width, self.display_height)) # Can be used once again when resolution changes
         # Setup buttons
         self.buttons = pygame.sprite.Group()
-        self.center_x = self.rs.x(960)
         self.button_width = self.rs.x(255)
         self.button_height = self.rs.y(70)
         # noinspection PyTypeChecker
@@ -26,7 +26,7 @@ class MainMenu(Window):
                 self.rs.u(5),
                 border_colour = "#ffffff",
                 fill = False,
-                offset_y = self.rs.u(4),
+                offset_y = self.rs.y(4),
                 action = "start",
                 hover_text_colour = "#000000",
                 hover_rect_colour = "#ffffff",
@@ -43,7 +43,7 @@ class MainMenu(Window):
                 self.rs.u(5),
                 border_colour = "#ffffff",
                 fill = False,
-                offset_y = self.rs.u(4),
+                offset_y = self.rs.y(4),
                 action = "controls",
                 hover_text_colour = "#000000",
                 hover_rect_colour = "#ffffff",
@@ -60,7 +60,7 @@ class MainMenu(Window):
                 self.rs.u(5),
                 border_colour = "#ffffff",
                 fill = False,
-                offset_y = self.rs.u(4),
+                offset_y = self.rs.y(4),
                 action = "settings",
                 hover_text_colour = "#000000",
                 hover_rect_colour = "#ffffff",
@@ -71,7 +71,7 @@ class MainMenu(Window):
                 (self.center_x, self.rs.y(770)),
                 (self.button_width, self.button_height),
                 "Exit",
-                pygame.font.Font(self.fonts["OldeTome"], self.rs.u(43)),
+                pygame.font.Font(self.fonts["OldeTome"], self.rs.y(43)),
                 "#ffffff",
                 "#000000",
                 self.rs.u(5),
