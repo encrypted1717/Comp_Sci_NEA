@@ -1,6 +1,5 @@
 import pygame
 from graphics.resolution_scaler import ResolutionScaler
-from core.button import Button
 
 
 class Window:
@@ -8,7 +7,8 @@ class Window:
         self.display = display
         self.display_width, self.display_height = self.display.get_size()
         self.rs = ResolutionScaler((self.display_width, self.display_height), (1920, 1080))
-        self.Button = Button
+        self.center_x = self.display_width / 2
+        self.center_y = self.display_height / 2
         self.events = None
         self.dt = 0
         self.fonts = {
@@ -21,3 +21,11 @@ class Window:
         self.dt = dt
         self.buttons.update(pygame.mouse.get_pos())
         self.buttons.draw(self.display)  # keep loading buttons
+
+    # Update all variables with new display
+    def set_display(self, new_display):
+        self.display = new_display
+        self.display_width, self.display_height = self.display.get_size()
+        self.rs = ResolutionScaler((self.display_width, self.display_height), (1920, 1080))
+        self.center_x = self.display_width / 2
+        self.center_y = self.display_height / 2
