@@ -6,7 +6,7 @@ class Button(pygame.sprite.Sprite):
     def __init__(self,
                  position,
                  dimensions,
-                 text,
+                 text: str,
                  font,
                  text_colour,
                  rect_colour,
