@@ -2,7 +2,7 @@
 
 import pygame
 from core.collider import Collider
-from core.tile_map import TileMap
+from graphics.tile_map import TileMap
 
 """
 0 = Sky
@@ -12,7 +12,7 @@ class MapGeneration:
     def __init__(self, display):
         self.display = display
         #game_variables
-        self.tile_size = 120
+        self.tile_size = 60
         self.game_map = TileMap.game_map1
 
         self.solid_tiles = []
