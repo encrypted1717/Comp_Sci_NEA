@@ -1,98 +1,224 @@
 import pygame
-from core.config_manager import ConfigManager
+from core.window import Window
 from core.button import Button
+from core.config_manager import ConfigManager
 
 #TODO Settings should update changes to file
 #TODO Introduce more settings
-class SettingsMenu:
+class SettingsMenu(Window):
     def __init__(self, display):
-        self.display = display
-        self.dt = None
+        super().__init__(display)
         #get configs for game
-        self.config_manager = ConfigManager()
-        self.config_manager.open_file("assets\\game_settings\\config_user.ini")
+        self.config_manager = ConfigManager("assets\\game_settings\\config_user.ini")
         self.config = self.config_manager.get_config()
-        self.screen_width = self.config.getint("Graphics", "Screen_Width")
-        self.screen_height = self.config.getint("Graphics", "Screen_Height")
-        #reset background to white
-        self.colour = pygame.Color('#ffffff') # White
-        #resolution setting setup
-        self.resolution_font = "assets\\fonts\\Number_Font_Osadam\\Gothic_pixel_font.ttf"
-        self.resolution_font = pygame.font.Font(self.resolution_font, 16)
-        self.resolution_value = str(self.screen_width) + " x " + str(self.screen_height)
-        # Fonts
-        self.font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 37)
-        self.front_font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 56)
+        self.changed = False # Whether any settings have been changed
+        # Resolution setting setup
+        self.resolutions = pygame.display.list_modes()
+        self.resolution = (self.display.width, self.display.height)
+        # Display mode setup
+        self.display_modes = ("Fullscreen", "Borderless_Windowed", "Windowed")
+        self.display_mode = self.config.get("Window", "Display_Mode")
+        # FPS setup
+        self.fps_values = ("30", "60", "120", "144", "165", "185", "240", "360", "Unlimited") # Unlimited normally is represented by a 0 or empty parameter on the clock
+        self.fps = self.config.get("Window", "FPS")
         # Button setup
-        self.buttons = pygame.sprite.Group()
-        self.__back_btn = Button((150, 120),
-                                 (160, 60),
-                                 "Back",
-                                 self.font,
-                                 "#ffffff",
-                                 '#000000',
-                                 5,
-                                 border_colour = "#000000",
-                                 offset_y = 4,
-                                 action = "back",
-                                 hover_text_colour = "#000000",
-                                 hover_rect_colour = "#ffffff",
-                                 hover_border_colour = "#000000",
-                                 fill_on_hover = True
-                                 )
+        self.__back_btn = Button(
+            (self.rs.x(150), self.rs.y(120)),
+            (self.rs.x(160), self.rs.y(60)),
+            "Back",
+            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(37)),
+            "#ffffff",
+            '#000000',
+            self.rs.u(5),
+            border_colour = "#000000",
+            offset_y = self.rs.y(4),
+            action = "main_menu",
+            hover_text_colour = "#000000",
+            hover_rect_colour = "#ffffff",
+            hover_border_colour = "#000000",
+            fill_on_hover = True
+        )
 
-        self.__graphics_btn = Button((1920 / 2, 120),
-                                     (235, 70),
-                                     "Graphics",
-                                     self.front_font,
-                                     '#ffffff',
-                                     '#000000',
-                                     0,
-                                     offset_y = 4
-                                     )
+        self.__graphics_label = Button(
+            (self.center_x, self.rs.y(120)),
+            (self.rs.x(235), self.rs.y(70)),
+            "Graphics",
+            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(56)),
+            '#ffffff',
+            '#000000',
+            offset_y = self.rs.y(4)
+        )
 
-        self.__resolution_btn = Button((785, 350),
-                                       (300, 60),
-                                       "Resolution",
-                                       self.font,
-                                       '#ffffff',
-                                       '#000000',
-                                       0,
-                                       offset_y=4
-                                       )
+        self.__resolution_label = Button(
+            (self.rs.x(780), self.rs.y(350)),
+            (self.rs.x(300), self.rs.y(60)),
+            "Resolution",
+            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(37)),
+            '#ffffff',
+            '#000000',
+            offset_y = self.rs.y(4)
+        )
 
-        self.__resolution_value_btn = Button((1135, 350),
-                                             (300, 60),
-                                             self.resolution_value,
-                                             self.resolution_font,
-                                             '#000000',
-                                             '#ffffff',
-                                             5, border_colour = "#000000",
-                                             offset_y = 4,
-                                             action = "cycle_resolution",
-                                             hover_text_colour = "#ffffff",
-                                             hover_rect_colour = "#000000",
-                                             hover_border_colour = "#ffffff",
-                                             fill_on_hover = True
-                                             )
+        self.__resolution_btn = Button(
+            (self.rs.x(1180), self.rs.y(350)),
+            (self.rs.x(380), self.rs.y(60)),
+            f"{self.resolution[0]} x {self.resolution[1]}",
+            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            '#000000',
+            '#ffffff',
+            self.rs.u(5),
+            border_colour = "#000000",
+            offset_y = self.rs.y(4),
+            action = "cycle_resolution",
+            hover_text_colour = "#ffffff",
+            hover_rect_colour = "#000000",
+            hover_border_colour = "#ffffff",
+            fill_on_hover = True
+        )
+
+        self.__display_mode_label = Button(
+            (self.rs.x(780), self.rs.y(440)),
+            (self.rs.x(300), self.rs.y(60)),
+            "Display_Mode",
+            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(37)),
+            '#ffffff',
+            '#000000',
+            offset_y=self.rs.y(4)
+        )
+
+        self.__display_mode_btn = Button(
+            (self.rs.x(1180), self.rs.y(440)),
+            (self.rs.x(380), self.rs.y(60)),
+            self.display_mode,
+            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            '#000000',
+            '#ffffff',
+            self.rs.u(5),
+            border_colour = "#000000",
+            offset_y = self.rs.y(4),
+            action = "cycle_display_modes",
+            hover_text_colour = "#ffffff",
+            hover_rect_colour = "#000000",
+            hover_border_colour = "#ffffff",
+            fill_on_hover = True
+        )
+        self.__fps_label = Button(
+            (self.rs.x(780), self.rs.y(530)),
+            (self.rs.x(300), self.rs.y(60)),
+            "FPS",
+            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(37)),
+            '#ffffff',
+            '#000000',
+            offset_y=self.rs.y(4)
+        )
+
+        self.__fps_btn = Button(
+            (self.rs.x(1180), self.rs.y(530)),
+            (self.rs.x(380), self.rs.y(60)),
+            self.fps,
+            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            '#000000',
+            '#ffffff',
+            self.rs.u(5),
+            border_colour="#000000",
+            offset_y=self.rs.y(4),
+            action="cycle_fps",
+            hover_text_colour="#ffffff",
+            hover_rect_colour="#000000",
+            hover_border_colour="#ffffff",
+            fill_on_hover=True
+        )
+
+        self.__apply_btn = Button(
+            (self.rs.x(1770), self.rs.y(960)),
+            (self.rs.x(160), self.rs.y(60)),
+            "Apply",
+            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            '#000000',
+            '#ffffff',
+            self.rs.u(5),
+            border_colour="#000000",
+            offset_y=self.rs.y(4),
+            action="apply",
+            hover_text_colour="#ffffff",
+            hover_rect_colour="#000000",
+            hover_border_colour="#ffffff",
+            fill_on_hover=True
+        )
+
         # noinspection PyTypeChecker
-        self.buttons.add(self.__back_btn, self.__graphics_btn, self.__resolution_value_btn, self.__resolution_btn)
+        self.buttons.add(
+            self.__back_btn,
+            self.__graphics_label,
+            self.__resolution_label,
+            self.__resolution_btn,
+            self.__display_mode_label,
+            self.__display_mode_btn,
+            self.__fps_label,
+            self.__fps_btn
+        )
 
     def event_handler(self, events):
+        # Unless a setting has changed then apply button won't appear
+        if self.changed and not self.buttons.has(self.__apply_btn):
+            self.buttons.add(self.__apply_btn)
+        elif not self.changed and self.buttons.has(self.__apply_btn):
+            self.buttons.remove(self.__apply_btn)
+
         for event in events:
             for btn in self.buttons:
                 action = btn.handle_event(event)
-                if action is None:
-                    continue
+
                 if action == "cycle_resolution":
-                    self.resolution = "1280 x 720" # TODO apply proper cycling logic
-                    self.__resolution_value_btn.update_text(self.resolution)
+                    self.resolution = self.__cycle_setting(self.resolution, self.resolutions)
+                    self.__resolution_btn.update_text(f"{self.resolution[0]} x {self.resolution[1]}")
                     return None
-                return action
+
+                if action == "cycle_display_modes":
+                    self.display_mode = self.__cycle_setting(self.display_mode, self.display_modes)
+                    self.__display_mode_btn.update_text(self.display_mode)
+                    return None
+
+                if action == "cycle_fps":
+                    self.fps = self.__cycle_setting(self.fps, self.fps_values)
+                    self.__fps_btn.update_text(self.fps)
+                    return None
+
+                if action == "apply":
+                    self.config_manager.set_values({
+                        "Graphics":
+                            {
+                                "Screen_Width": self.resolution[0],
+                                "Screen_Height": self.resolution[1]
+                            },
+                        "Window":
+                            {
+                                "Display_Mode": self.display_mode,
+                                "FPS": self.fps
+                            }
+                    })
+
+                    self.buttons.remove(self.__apply_btn)
+                    self.changed = False
+                    return "apply_display"
+
+                elif action:
+                    return action
         return None
 
+    def __cycle_setting(self, setting, values):
+        current_index = values.index(setting)
+        # current_index = (current_index + 1) % len(values)
+        if len(values) - 1 > current_index:
+            current_index += 1
+        else:
+            current_index = 0
+        setting = values[current_index]
+        if not self.changed:
+            self.changed = True
+        return setting
+
+
+
     def draw(self, dt):
-        self.dt = dt
-        mouse_pos = pygame.mouse.get_pos()
-        self.buttons.update(mouse_pos)
-        self.buttons.draw(self.display)
+        super().draw(dt)
