@@ -1,7 +1,7 @@
 import pygame
 
 
-#loading background layers and making sure addresses are portable as they refer to the files within the actual game folder.
+# Loading background layers and making sure addresses are portable as they refer to the files within the actual game folder.
 class Background:
     def __init__(self):
         self.__width, self.__height = (0, 0)
