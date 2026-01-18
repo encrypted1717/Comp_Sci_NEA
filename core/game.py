@@ -2,35 +2,48 @@ import pygame
 from core.entity import Entity
 from core.config_manager import ConfigManager
 from core.button import Button
-from core.collider import Collider
 from core.collision_manager import CollisionManager
 from core.combat_system import CombatSystem
-from core.map_generation import MapGeneration
+from graphics.map_generation import MapGeneration
+from core.window import Window
 
-
-class Game:
+class Game(Window):
     # noinspection PyTypeChecker
     def __init__(self, display):
+        super().__init__(display)
         # Main Setup
-        self.display = display
-        self.display_width, self.display_height = self.display.get_sizes()
-        self.dt = 0 # Seconds
-        self.events = None
         self.combat_system = CombatSystem()
-        # Fonts
-        self.front_font = pygame.font.Font("assets\\fonts\\OldeTome\\OldeTome.ttf", 56)
-        self.num_font = pygame.font.Font("assets\\fonts\\Number_Font_Osadam\\Gothic_pixel_font.ttf", 16)
         # Setup configurations
         self.config_manager = ConfigManager()
         self.config = self.config_manager.get_config()
         self.config_manager.open_file("assets\\game_settings\\config_user.ini")
         # Player1 setup
         self.player1 = Entity((680, 450), "player1")
-        self.health1_btn = Button((240, 120), (235, 70), f"Health: {str(self.player1.health)}", self.num_font, '#000000', '#ffffff', 5, border_colour = "#000000", offset_y=4)
+        self.health1_btn = Button(
+            (self.rs.x(240), self.rs.y(120)),
+            (self.rs.x(235), self.rs.y(70)),
+            f"Health: {str(self.player1.health)}",
+            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            '#000000',
+            '#ffffff',
+            self.rs.u(5),
+            border_colour = "#000000",
+            offset_y = self.rs.y(4)
+        )
         # Player2 setup
-        self.player2 = Entity((1000, 450), "player2")
+        self.player2 = Entity((self.rs.x(1000), self.rs.y(450)), "player2")
         # TODO make health button have a percentage type meter that reduces as the player loses health... do this by making the health button invisible fill and then have another rect beneath it be a still colour and make rect reduce size by percentage of total health
-        self.health2_btn = Button((1560, 120), (235, 70), f"Health: {str(self.player2.health)}", self.num_font, '#000000', '#ffffff', 5, border_colour = "#000000", offset_y=4)
+        self.health2_btn = Button(
+            (self.rs.x(1560), self.rs.y(120)),
+            (self.rs.x(235), self.rs.y(70)),
+            f"Health: {str(self.player2.health)}",
+            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            '#000000',
+            '#ffffff',
+            self.rs.u(5),
+            border_colour = "#000000",
+            offset_y = self.rs.y(4)
+        )
         # Setup static objects
         #self.ground = Collider(pygame.Rect(0, 1080, 1920, 100), "ground")
         # Setup groups
