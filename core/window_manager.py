@@ -10,8 +10,8 @@ from menus.exit_menu import ExitMenu
 class WindowManager:
     def __init__(self, display):
         self.display = display
-        self.state = "main_menu" #defaults to this
-        self.windows = {"main_menu" : MainMenu(self.display)} #windows that are preloaded
+        self.state = "main_menu" # Defaults to this
+        self.windows = {"main_menu" : MainMenu(self.display)} # Windows that are preloaded
 
     # Create/load anything that isn't already loaded into the windows
     # noinspection PyTypeChecker
@@ -32,8 +32,17 @@ class WindowManager:
     def update_window(self, events):
         new_state = self.__get_window().event_handler(events)
         if new_state: #if true then there is a new state
-            del self.windows[self.state]
-            self.state = new_state
+            if new_state == "apply_display":
+                return "update_display"
+            else:
+                del self.windows[self.state]
+                self.state = new_state
+        return None
+
+    def update_display(self, new_display):
+        self.display = new_display
+        for window in self.windows.values():
+            window.set_display(self.display)
 
     def draw(self, dt):
         self.__get_window().draw(dt)
