@@ -8,95 +8,90 @@ from graphics.map_generation import MapGeneration
 from core.window import Window
 
 class Game(Window):
-    # noinspection PyTypeChecker
-    def __init__(self, display):
-        super().__init__(display)
+    def __init__(self, display, renderer):
+        super().__init__(display, renderer)
         # Main Setup
         self.combat_system = CombatSystem()
         # Setup configurations
-        self.config_manager = ConfigManager()
+        self.config_manager = ConfigManager("assets\\game_settings\\config_user.ini")
         self.config = self.config_manager.get_config()
-        self.config_manager.open_file("assets\\game_settings\\config_user.ini")
+        # Setup Pause frame
+        self.last_frame = None
         # Player1 setup
         self.player1 = Entity((680, 450), "player1")
         self.health1_btn = Button(
-            (self.rs.x(240), self.rs.y(120)),
-            (self.rs.x(235), self.rs.y(70)),
+            (240, 120),
+            (235, 70),
             f"Health: {str(self.player1.health)}",
-            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            pygame.font.Font(self.fonts["GothicPixel"], 16),
             '#000000',
             '#ffffff',
-            self.rs.u(5),
+            5,
             border_colour = "#000000",
-            offset_y = self.rs.y(4)
+            offset_y = 4
         )
+
         # Player2 setup
-        self.player2 = Entity((self.rs.x(1000), self.rs.y(450)), "player2")
+        self.player2 = Entity((1000, 450), "player2")
         # TODO make health button have a percentage type meter that reduces as the player loses health... do this by making the health button invisible fill and then have another rect beneath it be a still colour and make rect reduce size by percentage of total health
         self.health2_btn = Button(
-            (self.rs.x(1560), self.rs.y(120)),
-            (self.rs.x(235), self.rs.y(70)),
+            (1560, 120),
+            (235, 70),
             f"Health: {str(self.player2.health)}",
-            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            pygame.font.Font(self.fonts["GothicPixel"], 16),
             '#000000',
             '#ffffff',
-            self.rs.u(5),
+            5,
             border_colour = "#000000",
-            offset_y = self.rs.y(4)
+            offset_y = 4
         )
-        # Setup static objects
-        #self.ground = Collider(pygame.Rect(0, 1080, 1920, 100), "ground")
         # Setup groups
         self.colliders = pygame.sprite.Group()
-        #self.colliders.add(self.ground)
-        self.entities = pygame.sprite.Group()
-        self.entities.add(self.player1)
-        self.entities.add(self.player2)
-        self.buttons = pygame.sprite.Group()
+        self.entities = pygame.sprite.Group(self.player1, self.player2)
         self.buttons.add(self.health1_btn, self.health2_btn)
 
         self.collision_manager = CollisionManager(self.entities, self.colliders)
 
         # Map setup
-        self.map = MapGeneration(self.display)
+        self.map = MapGeneration()
         self.map.create_map()
-
         for tile in self.map.solid_tiles:
             self.colliders.add(tile)
 
     def event_handler(self, events):
-        self.events = events
         for entity in self.entities:
-            entity.event_handler(self.events)
-        for event in self.events:
-            #kb press down
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    return "main_menu"
+            entity.event_handler(events)
 
-            #kb up
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_ESCAPE:
-                    return "main_menu"
+        for event in events:
+            #kb press down
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return "pause_menu", self.last_frame
         return None
 
     def draw(self, dt):
         self.dt = dt
-        self.colliders.draw(self.display)
+        self.surface.fill((255, 255, 255))  # White background
+        # Draw to virtual surface
+        self.colliders.draw(self.surface)
+
         self.entities.update(self.dt)
         self.collision_manager.resolve_entity(self.dt)
+
         for entity in self.entities:
-            self.display.blit(entity.image, entity.img_rect.topleft)
-            pygame.draw.rect(self.display,(255, 0, 0), entity.rect, 5) # collision/hit box
+            self.surface.blit(entity.image, entity.img_rect.topleft)
+            pygame.draw.rect(self.surface,(255, 0, 0), entity.rect, 5) # Collision/hit box
+
         self.health1_btn.update_text(f"Health: {self.player1.health}")
         self.health2_btn.update_text(f"Health: {self.player2.health}")
-        self.buttons.draw(self.display)
+        super().draw(self.dt)
+
         for attacker in self.entities:
             if attacker.attacking:
                 for defender in self.entities:
                     if attacker is defender:
                         continue
                     self.combat_system.try_apply_hits(attacker, defender)
+
                 # Debug: draw attacker hitbox if attacking
                 attack_data = self.combat_system.attacks.get(attacker.attack_name)
                 frame_index = attacker.animation_manager.get_frame_index()
@@ -106,6 +101,8 @@ class Game(Window):
                 if not hitbox_data:
                     continue
 
-                hb = self.combat_system.build_hitbox(attacker, hitbox_data)
-                pygame.draw.rect(self.display, (0, 255, 0), hb, 10)
+                hitbox = self.combat_system.build_hitbox(attacker, hitbox_data)
+                pygame.draw.rect(self.surface, (0, 255, 0), hitbox, 10)
+
         self.combat_system.update(self.entities)
+        self.last_frame = self.surface.copy()
