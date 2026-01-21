@@ -75,7 +75,12 @@ class Button(pygame.sprite.Sprite):
         self.image.blit(text_surf, text_rect)
 
     def update(self, mouse_pos = None):
-        if mouse_pos is not None:
+        if mouse_pos is None:
+            if self.is_hovering:
+                self.is_hovering = False
+                self.__render()
+
+        else:
             is_hovering_now = self.rect.collidepoint(mouse_pos)
             if is_hovering_now != self.is_hovering:
                 self.is_hovering = is_hovering_now
