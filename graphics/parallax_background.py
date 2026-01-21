@@ -55,14 +55,10 @@ class Background:
 
     def update(self, dt):
         if self.__width != 0:
-            scaled_x = self.__width / self.__design_width
-
             for layer in self.__background:
                 img = layer["img"]
                 layer_width = img.get_width()
-
-                speed = layer["speed"] * scaled_x
-                layer["x"] = (layer["x"] - speed * dt) % layer_width # Speed in pixels
+                layer["x"] = (layer["x"] - layer["speed"] * dt) % layer_width # Speed in pixels
 
     def draw(self, surface):
         for layer in self.__background:
