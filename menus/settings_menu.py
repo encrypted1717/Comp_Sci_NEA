@@ -6,15 +6,16 @@ from core.config_manager import ConfigManager
 #TODO Settings should update changes to file
 #TODO Introduce more settings
 class SettingsMenu(Window):
-    def __init__(self, display):
-        super().__init__(display)
+    def __init__(self, display, renderer):
+        super().__init__(display, renderer)
         #get configs for game
         self.config_manager = ConfigManager("assets\\game_settings\\config_user.ini")
         self.config = self.config_manager.get_config()
         self.changed = False # Whether any settings have been changed
         # Resolution setting setup
         self.resolutions = pygame.display.list_modes()
-        self.resolution = (self.display.width, self.display.height)
+        # TODO could try first getting it from ini file
+        self.resolution = self.display.get_size() # Get real window resolution
         # Display mode setup
         self.display_modes = ("Fullscreen", "Borderless_Windowed", "Windowed")
         self.display_mode = self.config.get("Window", "Display_Mode")
@@ -23,15 +24,15 @@ class SettingsMenu(Window):
         self.fps = self.config.get("Window", "FPS")
         # Button setup
         self.__back_btn = Button(
-            (self.rs.x(150), self.rs.y(120)),
-            (self.rs.x(160), self.rs.y(60)),
+            (150, 120),
+            (160, 60),
             "Back",
-            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(37)),
+            pygame.font.Font(self.fonts["OldeTome"], 37),
             "#ffffff",
             '#000000',
-            self.rs.u(5),
+            5,
             border_colour = "#000000",
-            offset_y = self.rs.y(4),
+            offset_y = 4,
             action = "main_menu",
             hover_text_colour = "#000000",
             hover_rect_colour = "#ffffff",
@@ -40,35 +41,35 @@ class SettingsMenu(Window):
         )
 
         self.__graphics_label = Button(
-            (self.center_x, self.rs.y(120)),
-            (self.rs.x(235), self.rs.y(70)),
+            (self.center_x, 120),
+            (235, 70),
             "Graphics",
-            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(56)),
+            pygame.font.Font(self.fonts["OldeTome"], 56),
             '#ffffff',
             '#000000',
-            offset_y = self.rs.y(4)
+            offset_y = 4
         )
 
         self.__resolution_label = Button(
-            (self.rs.x(780), self.rs.y(350)),
-            (self.rs.x(300), self.rs.y(60)),
+            (780, 350),
+            (300, 60),
             "Resolution",
-            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(37)),
+            pygame.font.Font(self.fonts["OldeTome"], 37),
             '#ffffff',
             '#000000',
-            offset_y = self.rs.y(4)
+            offset_y = 4
         )
 
         self.__resolution_btn = Button(
-            (self.rs.x(1180), self.rs.y(350)),
-            (self.rs.x(380), self.rs.y(60)),
+            (1180, 350),
+            (380, 60),
             f"{self.resolution[0]} x {self.resolution[1]}",
-            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            pygame.font.Font(self.fonts["GothicPixel"], 16),
             '#000000',
             '#ffffff',
-            self.rs.u(5),
+            5,
             border_colour = "#000000",
-            offset_y = self.rs.y(4),
+            offset_y = 4,
             action = "cycle_resolution",
             hover_text_colour = "#ffffff",
             hover_rect_colour = "#000000",
@@ -77,25 +78,25 @@ class SettingsMenu(Window):
         )
 
         self.__display_mode_label = Button(
-            (self.rs.x(780), self.rs.y(440)),
-            (self.rs.x(300), self.rs.y(60)),
+            (780, 440),
+            (300, 60),
             "Display_Mode",
-            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(37)),
+            pygame.font.Font(self.fonts["OldeTome"], 37),
             '#ffffff',
             '#000000',
-            offset_y=self.rs.y(4)
+            offset_y=4
         )
 
         self.__display_mode_btn = Button(
-            (self.rs.x(1180), self.rs.y(440)),
-            (self.rs.x(380), self.rs.y(60)),
+            (1180, 440),
+            (380, 60),
             self.display_mode,
-            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            pygame.font.Font(self.fonts["GothicPixel"], 16),
             '#000000',
             '#ffffff',
-            self.rs.u(5),
+            5,
             border_colour = "#000000",
-            offset_y = self.rs.y(4),
+            offset_y = 4,
             action = "cycle_display_modes",
             hover_text_colour = "#ffffff",
             hover_rect_colour = "#000000",
@@ -103,25 +104,25 @@ class SettingsMenu(Window):
             fill_on_hover = True
         )
         self.__fps_label = Button(
-            (self.rs.x(780), self.rs.y(530)),
-            (self.rs.x(300), self.rs.y(60)),
+            (780, 530),
+            (300, 60),
             "FPS",
-            pygame.font.Font(self.fonts["OldeTome"], self.rs.u(37)),
+            pygame.font.Font(self.fonts["OldeTome"], 37),
             '#ffffff',
             '#000000',
-            offset_y=self.rs.y(4)
+            offset_y=4
         )
 
         self.__fps_btn = Button(
-            (self.rs.x(1180), self.rs.y(530)),
-            (self.rs.x(380), self.rs.y(60)),
+            (1180, 530),
+            (380, 60),
             self.fps,
-            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            pygame.font.Font(self.fonts["GothicPixel"], 16),
             '#000000',
             '#ffffff',
-            self.rs.u(5),
+            5,
             border_colour="#000000",
-            offset_y=self.rs.y(4),
+            offset_y=4,
             action="cycle_fps",
             hover_text_colour="#ffffff",
             hover_rect_colour="#000000",
@@ -130,15 +131,15 @@ class SettingsMenu(Window):
         )
 
         self.__apply_btn = Button(
-            (self.rs.x(1770), self.rs.y(960)),
-            (self.rs.x(160), self.rs.y(60)),
+            (1770, 960),
+            (160, 60),
             "Apply",
-            pygame.font.Font(self.fonts["GothicPixel"], self.rs.u(16)),
+            pygame.font.Font(self.fonts["GothicPixel"], 16),
             '#000000',
             '#ffffff',
-            self.rs.u(5),
+            5,
             border_colour="#000000",
-            offset_y=self.rs.y(4),
+            offset_y=4,
             action="apply",
             hover_text_colour="#ffffff",
             hover_rect_colour="#000000",
@@ -207,18 +208,27 @@ class SettingsMenu(Window):
         return None
 
     def __cycle_setting(self, setting, values):
-        current_index = values.index(setting)
-        # current_index = (current_index + 1) % len(values)
-        if len(values) - 1 > current_index:
-            current_index += 1
-        else:
-            current_index = 0
-        setting = values[current_index]
+        """
+        Cycles through 'values'. If 'setting' is not currently in 'values',
+        it falls back to values[0] instead of throwing.
+        """
+        if not values: # there are no values
+            # TODO log the fact no values were found?
+            return setting
+
+        try:
+            current_index = values.index(setting)
+        except ValueError:
+            current_index = -1  # force to 0 on next line
+
+        next_index = (current_index + 1) % len(values) # TODO Explain why this line works
+        new_setting = values[next_index]
+
         if not self.changed:
             self.changed = True
-        return setting
 
-
+        return new_setting
 
     def draw(self, dt):
+        self.surface.fill((255, 255, 255)) # White background
         super().draw(dt)
