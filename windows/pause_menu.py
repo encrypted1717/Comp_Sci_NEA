@@ -6,7 +6,7 @@ class PauseMenu(Window):
     def __init__(self, display, renderer, background_surface):
         super().__init__(display, renderer)
         self.background_surface = background_surface
-        self.button_width = 255
+        self.button_width = 400
         self.button_height = 70
         self.buttons.add(
             Button(
@@ -20,12 +20,13 @@ class PauseMenu(Window):
                 border_colour="#000000",
                 fill=True,
                 offset_y=4,
-                action="start",
+                action="back",
                 hover_text_colour="#000000",
                 hover_rect_colour="#ffffff",
                 hover_border_colour="#000000",
                 fill_on_hover=True
             ),
+
             Button(
                 (self.center_x, 460),
                 (self.button_width, self.button_height),
@@ -43,6 +44,7 @@ class PauseMenu(Window):
                 hover_border_colour="#000000",
                 fill_on_hover=True
             ),
+
             Button(
                 (self.center_x, 550),
                 (self.button_width, self.button_height),
@@ -60,8 +62,27 @@ class PauseMenu(Window):
                 hover_border_colour="#000000",
                 fill_on_hover=True
             ),
+
             Button(
                 (self.center_x, 640),
+                (self.button_width, self.button_height),
+                "Return to main menu",
+                pygame.font.Font(self.fonts["OldeTome"], 43),
+                "#ffffff",
+                "#000000",
+                5,
+                border_colour="#000000",
+                fill=True,
+                offset_y=4,
+                action="main",
+                hover_text_colour="#000000",
+                hover_rect_colour="#ffffff",
+                hover_border_colour="#000000",
+                fill_on_hover=True
+            ),
+
+            Button(
+                (self.center_x, 730),
                 (self.button_width, self.button_height),
                 "Exit",
                 pygame.font.Font(self.fonts["OldeTome"], 43),
@@ -81,6 +102,9 @@ class PauseMenu(Window):
 
     def event_handler(self, events):
         for event in events:
+            # kb press down
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return "back"
             for btn in self.buttons:
                 action = btn.handle_event(event)
                 if action is not None:
@@ -88,6 +112,6 @@ class PauseMenu(Window):
         return None
 
     def draw(self, dt):
-        blurred = pygame.transform.box_blur(self.background_surface, radius=5)
+        blurred = pygame.transform.box_blur(self.background_surface, radius=7)
         self.surface.blit(blurred, (0, 0))
         super().draw(dt)
