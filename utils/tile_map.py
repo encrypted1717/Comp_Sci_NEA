@@ -2,6 +2,7 @@
 0 = Sky
 1 = Dirt
 '''
+# TODO Is it necessary to be a class?
 class TileMap:
     game_map1 = [
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

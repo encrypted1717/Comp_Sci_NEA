@@ -1,11 +1,12 @@
 import pygame
 
+
 class CombatSystem:
     def __init__(self):
         # Tracks "already hit" per (attacker_id, attack_id, defender_id)
         self.__hit_registry = set()
 
-        # Attack definitions (tweak these)
+        # Attack definitions (can tweak)
         # active_frames: which animation frame indices can deal damage
         # hitbox: (offset_x, offset_y, w, h) relative to attacker rect center
         self.attacks = {

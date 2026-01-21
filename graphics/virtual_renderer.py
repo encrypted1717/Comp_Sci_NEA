@@ -7,7 +7,7 @@ class VirtualRenderer:
     then scales + letterboxes onto the real window surface.
     """
 
-    def __init__(self, window_surface: pygame.Surface, design_size = (1920, 1080)):
+    def __init__(self, window_surface: pygame.Surface, design_size: tuple = (1920, 1080)):
         self.design_size = design_size
         self.black = (0, 0, 0) # Black
 

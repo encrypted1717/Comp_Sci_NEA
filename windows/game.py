@@ -1,11 +1,12 @@
 import pygame
+from core.window import Window
 from core.entity import Entity
 from core.config_manager import ConfigManager
 from core.button import Button
 from core.collision_manager import CollisionManager
-from core.combat_system import CombatSystem
+from utils.combat_system import CombatSystem
 from graphics.map_generation import MapGeneration
-from core.window import Window
+
 
 class Game(Window):
     def __init__(self, display, renderer):
@@ -65,7 +66,7 @@ class Game(Window):
         for event in events:
             #kb press down
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                return "pause_menu", self.last_frame
+                return "pause", self.last_frame
         return None
 
     def draw(self, dt):

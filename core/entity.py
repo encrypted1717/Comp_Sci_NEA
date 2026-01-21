@@ -2,6 +2,7 @@ import logging
 import pygame
 from graphics.animation_manager import AnimationManager
 
+
 class Entity(pygame.sprite.Sprite):
     def __init__(self, start_position: tuple, sprite_type: str, health = 100):
         super().__init__()

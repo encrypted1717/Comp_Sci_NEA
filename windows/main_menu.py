@@ -25,7 +25,7 @@ class MainMenu(Window):
                 border_colour = "#ffffff",
                 fill = False,
                 offset_y = 4,
-                action = "start",
+                action = "game",
                 hover_text_colour = "#000000",
                 hover_rect_colour = "#ffffff",
                 hover_border_colour = "#000000",

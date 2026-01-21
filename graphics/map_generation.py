@@ -2,7 +2,8 @@
 
 import pygame
 from core.collider import Collider
-from graphics.tile_map import TileMap
+from utils.tile_map import TileMap
+
 
 """
 0 = Sky

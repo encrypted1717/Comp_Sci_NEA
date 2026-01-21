@@ -3,6 +3,7 @@ import pygame
 
 class Window:
     def __init__(self, display, renderer):
+        # TODO consider adding logging as a default for every window?
         self.display = display
         self.renderer = renderer
 
@@ -33,3 +34,7 @@ class Window:
         self.display = new_display
         self.renderer.set_window_surface(new_display)
         self.surface = self.renderer.virtual_surface
+
+    # TODO Can look into handling button actions automatically so every other function that uses event handler just super() and then their personal event handling
+    def event_handler(self, event):
+        pass

@@ -17,7 +17,7 @@ class ExitMenu(Window):
                 5,
                 border_colour = "#ffffff",
                 offset_y = 4,
-                action = "exit",
+                action = "exit", # TODO consider this as it may cause bugs as exit is also the same name as menu so may not close properly
                 hover_text_colour = "#000000",
                 hover_rect_colour = "#ffffff",
                 hover_border_colour = "#000000"
@@ -32,7 +32,7 @@ class ExitMenu(Window):
                 5,
                 border_colour = "#ffffff",
                 offset_y = 4,
-                action = "main_menu",
+                action = "back",
                 hover_text_colour = "#000000",
                 hover_rect_colour = "#ffffff",
                 hover_border_colour = "#000000"
@@ -41,6 +41,9 @@ class ExitMenu(Window):
 
     def event_handler(self, events):
         for event in events:
+            # kb press down
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return "back"
             for btn in self.buttons:
                 action = btn.handle_event(event)
                 if action is None:

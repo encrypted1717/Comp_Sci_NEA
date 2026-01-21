@@ -3,7 +3,7 @@ from core.window import Window
 from core.button import Button
 from core.config_manager import ConfigManager
 
-#TODO Settings should update changes to file
+
 #TODO Introduce more settings
 class SettingsMenu(Window):
     def __init__(self, display, renderer):
@@ -33,7 +33,7 @@ class SettingsMenu(Window):
             5,
             border_colour = "#000000",
             offset_y = 4,
-            action = "main_menu",
+            action = "back",
             hover_text_colour = "#000000",
             hover_rect_colour = "#ffffff",
             hover_border_colour = "#000000",
@@ -167,6 +167,9 @@ class SettingsMenu(Window):
             self.buttons.remove(self.__apply_btn)
 
         for event in events:
+            # kb press down
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return "back"
             for btn in self.buttons:
                 action = btn.handle_event(event)
 
