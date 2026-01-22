@@ -71,7 +71,11 @@ class Game(Window):
 
     def draw(self, dt):
         self.dt = dt
-        self.surface.fill((255, 255, 255))  # White background
+        self.surface.fill((128, 128, 128))  # White background
+        '''pygame.image.load(
+            "assets\\images\\background\\parallax_mountain_pack\\layers\\parallax-mountain-trees.png"
+        ).convert_alpha()
+        self.surface.fill()'''
         # Draw to virtual surface
         self.colliders.draw(self.surface)
 
@@ -79,8 +83,12 @@ class Game(Window):
         self.collision_manager.resolve_entity(self.dt)
 
         for entity in self.entities:
-            self.surface.blit(entity.image, entity.img_rect.topleft)
-            pygame.draw.rect(self.surface,(255, 0, 0), entity.rect, 5) # Collision/hit box
+            if entity.health > 0:
+                self.surface.blit(entity.image, entity.img_rect.topleft)
+                #pygame.draw.rect(self.surface,(255, 0, 0), entity.rect, 5) # Collision/hit box
+            else:
+                # TODO update health to
+                self.entities.remove(entity)
 
         self.health1_btn.update_text(f"Health: {self.player1.health}")
         self.health2_btn.update_text(f"Health: {self.player2.health}")
@@ -93,7 +101,7 @@ class Game(Window):
                         continue
                     self.combat_system.try_apply_hits(attacker, defender)
 
-                # Debug: draw attacker hitbox if attacking
+                '''# Debug: draw attacker hitbox if attacking
                 attack_data = self.combat_system.attacks.get(attacker.attack_name)
                 frame_index = attacker.animation_manager.get_frame_index()
 
@@ -103,7 +111,7 @@ class Game(Window):
                     continue
 
                 hitbox = self.combat_system.build_hitbox(attacker, hitbox_data)
-                pygame.draw.rect(self.surface, (0, 255, 0), hitbox, 10)
+                pygame.draw.rect(self.surface, (0, 255, 0), hitbox, 10)'''
 
         self.combat_system.update(self.entities)
         self.last_frame = self.surface.copy()

@@ -16,11 +16,45 @@ class Entity(pygame.sprite.Sprite):
         self.keys = None
         self.events = None
         # Setup animations
-        self.animation_manager = AnimationManager()
-        self.animation_manager.load_animation("default", "assets\\characters\\default\\fighting\\Animations\\punch_1.png", scale = 2.0, frame_indices = [0])
-        self.animation_manager.load_animation("punch_1", "assets\\characters\\default\\fighting\\Animations\\punch_1.png", scale = 2.0)
-        self.animation_manager.load_animation("jump", "assets\\characters\\default\\movement\\Animations\\upward_jump.png", scale = 2.0, frame_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0])
-        self.animation_manager.load_animation("double_jump", "assets/characters/default/movement/Animations/double_jump.png", scale = 2.0)
+        self.animation_manager = AnimationManager() # TODO update system so the scale can be updated and doesnt need to be stated at every load of animation
+        self.animation_manager.load_animation(
+            "default",
+            "assets\\characters\\default\\fighting\\Animations\\punch_1.png",
+            scale = 2.0,
+            frame_indices = [0]
+        )
+        self.animation_manager.load_animation(
+            "punch_1",
+            "assets\\characters\\default\\fighting\\Animations\\punch_1.png",
+            scale = 2.0
+        )
+        self.animation_manager.load_animation(
+            "jump",
+            "assets\\characters\\default\\movement\\Animations\\upward_jump.png",
+            scale = 2.0,
+            frame_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0]
+        )
+        self.animation_manager.load_animation(
+            "double_jump",
+            "assets/characters/default/movement/Animations/double_jump.png",
+            scale = 2.0
+        )
+        self.animation_manager.load_animation(
+            "walk",
+            "assets/characters/default/movement/Animations/walking.png",
+            scale = 2.0
+        )
+        self.animation_manager.load_animation(
+            "sprint",
+            "assets/characters/default/movement/Animations/running.png",
+            scale = 2.0
+        )
+        self.animation_manager.load_animation(
+            "stop_sprint",
+            "assets/characters/default/movement/Animations/stop_running.png",
+            scale = 2.0
+        )
+        self.dont_overrun = ("jump", "double_jump", "punch_1")
         self.animation_manager.set_animation("default", restart = True)
         # Kinematic vectors / equations
         self.velocity = self.vector(0, 0) # No moving at the start
@@ -28,6 +62,7 @@ class Entity(pygame.sprite.Sprite):
         # Kinematic constants
         self.horizontal_acceleration = 2000.0
         self.horizontal_friction = 11 # Depending on the situation this is also air resistance
+        self.sprint_force = 1000.0
         self.jump_force = 600
         self.double_jump_force = 700
         self.gravity = 1250
@@ -46,7 +81,8 @@ class Entity(pygame.sprite.Sprite):
                 "right": ("key", pygame.K_d),
                 "jump":("key", pygame.K_w),
                 "down": ("key", pygame.K_s),
-                "punch": ("mouse", 1) #left click
+                "sprint": ("key", pygame.K_LSHIFT),
+                "punch": ("key", pygame.K_SPACE) #("mouse", 1) left click
             }
         elif self.sprite == "player2":
             self.binds = {
@@ -54,7 +90,8 @@ class Entity(pygame.sprite.Sprite):
                 "right": ("key", pygame.K_RIGHT),
                 "jump": ("key", pygame.K_UP),
                 "down": ("key", pygame.K_DOWN),
-                "punch": ("key", pygame.K_RSHIFT),
+                "sprint": ("key", pygame.K_RSHIFT),
+                "punch": ("key", pygame.K_RETURN),
             }
         # Movement
         self.position = self.vector(self.rect.midbottom)
@@ -95,12 +132,34 @@ class Entity(pygame.sprite.Sprite):
         self.acceleration = self.vector(0, 0)
         self.keys = pygame.key.get_pressed()
         # Held Down
+        if self.__is_held("sprint"):
+            self.__sprint(self.flip_x)
+        elif self.animation_manager.get_name() == "sprint":
+            self.__stop_sprint(self.flip_x)
+
+        elif self.animation_manager.get_name() == "stop_sprint":
+            pass
+
         if self.__is_held("left"):
-            self.acceleration.x = -self.horizontal_acceleration
             self.flip_x = True
+            if not self.__is_held("sprint") and self.animation_manager.get_name() == "sprint":
+                self.__stop_sprint(self.flip_x)
+            elif self.__is_held("sprint") and self.animation_manager.get_name() == "sprint":
+                pass
+            elif self.animation_manager.get_name() != "stop_sprint":
+                self.__walk(self.flip_x)
+
         elif self.__is_held("right"):
-            self.acceleration.x = self.horizontal_acceleration
             self.flip_x = False
+            if not self.__is_held("sprint") and self.animation_manager.get_name() == "sprint":
+                self.__stop_sprint(self.flip_x)
+            elif self.__is_held("sprint") and self.animation_manager.get_name() == "sprint":
+                pass
+            elif self.animation_manager.get_name() != "stop_sprint":
+                self.__walk(self.flip_x)
+
+        elif not self.animation_manager.get_name() in ("sprint", "stop_sprint") and self.animation_manager.get_name() not in self.dont_overrun:
+            self.animation_manager.set_animation("default", restart=True)
 
         # Event-based actions (single press)
         for event in events:
@@ -147,6 +206,35 @@ class Entity(pygame.sprite.Sprite):
             self.jumps += 1
         else:
             self.acceleration.y = 0
+
+    def __walk(self, direction):
+        if direction: # is facing left
+            self.acceleration.x = -self.horizontal_acceleration
+        else:
+            self.acceleration.x = self.horizontal_acceleration
+
+        if not self.animation_manager.get_name() in self.dont_overrun:
+            self.animation_manager.set_animation("walk")
+
+
+    def __sprint(self, direction):
+        if direction: # is facing left
+            self.acceleration.x = -self.horizontal_acceleration - self.sprint_force
+        else:
+            self.acceleration.x = self.horizontal_acceleration + self.sprint_force
+
+        if not self.animation_manager.get_name() in self.dont_overrun:
+            self.animation_manager.set_animation("sprint")
+
+    def __stop_sprint(self, direction):
+        if direction:
+            self.acceleration.x = -self.horizontal_acceleration
+        else:
+            self.acceleration.x = self.horizontal_acceleration
+
+        if not self.animation_manager.get_name() in self.dont_overrun:
+            self.animation_manager.set_animation("stop_sprint")
+
 
 
     def start_attack(self, name: str):
