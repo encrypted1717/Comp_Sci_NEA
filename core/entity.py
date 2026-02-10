@@ -54,6 +54,11 @@ class Entity(pygame.sprite.Sprite):
             "assets/characters/default/movement/Animations/stop_running.png",
             scale = 2.0
         )
+        self.animation_manager.load_animation(
+            "crouch",
+            "assets/characters/default/movement/Animations/crouch.png",
+            scale = 2.0
+        )
         self.dont_overrun = ("jump", "double_jump", "punch_1")
         self.animation_manager.set_animation("default", restart = True)
         # Kinematic vectors / equations
@@ -96,7 +101,7 @@ class Entity(pygame.sprite.Sprite):
         # Movement
         self.position = self.vector(self.rect.midbottom)
         self.on_ground = False
-        self.jumps = 2
+        self.jumps_remaining = 2
         self.air_time = 0.0
         self.double_jump_delay = 0.01  # seconds
         # Unique ID
@@ -128,6 +133,26 @@ class Entity(pygame.sprite.Sprite):
         self.rect = self.image.get_bounding_rect().move(self.img_rect.topleft) # used for collisions
         self.update_attack_state()
 
+    def get_input_state(self, events):
+        self.keys = pygame.key.get_pressed() # Store keys pressed
+
+        #state =
+
+    def apply_actions(self, inp):
+        """
+        Handles actions that should occur once per press, not continuously while a key is held:
+        Jump (on KEYDOWN / MOUSEBUTTONDOWN for your bind)
+        Punch/attack (on KEYDOWN / MOUSEBUTTONDOWN)
+        Later: dash, interact, swap weapon, parry, etc.
+        """
+        pass
+
+    def apply_movement(self, inp):
+        pass
+
+    def select_animation(self, inp):
+        pass
+
     def event_handler(self, events):
         self.acceleration = self.vector(0, 0)
         self.keys = pygame.key.get_pressed()
@@ -139,6 +164,10 @@ class Entity(pygame.sprite.Sprite):
 
         elif self.animation_manager.get_name() == "stop_sprint":
             pass
+
+        if self.__is_held("down"):
+            self.__crouch()
+
 
         if self.__is_held("left"):
             self.flip_x = True
@@ -196,16 +225,15 @@ class Entity(pygame.sprite.Sprite):
             return False
 
     def __jump(self):
-        if self.jumps == 0:
-            self.velocity.y = -self.jump_force
-            self.animation_manager.set_animation("jump")
-            self.jumps += 1
-        elif self.jumps == 1 and self.air_time >= self.double_jump_delay:
-            self.velocity.y = -self.double_jump_force
-            self.animation_manager.set_animation("double_jump")
-            self.jumps += 1
-        else:
-            self.acceleration.y = 0
+        if self.jumps_remaining > 0:
+            if self.jumps_remaining == 2:
+                self.velocity.y = -self.jump_force
+                self.animation_manager.set_animation("jump")
+                self.jumps_remaining -= 1
+            elif self.air_time >= self.double_jump_delay:
+                self.velocity.y = -self.double_jump_force
+                self.animation_manager.set_animation("double_jump")
+                self.jumps_remaining -= 1
 
     def __walk(self, direction):
         if direction: # is facing left
@@ -234,6 +262,11 @@ class Entity(pygame.sprite.Sprite):
 
         if not self.animation_manager.get_name() in self.dont_overrun:
             self.animation_manager.set_animation("stop_sprint")
+
+
+    def __crouch(self):
+        if not self.animation_manager.get_name() in self.dont_overrun:
+            self.animation_manager.set_animation("crouch")
 
 
 

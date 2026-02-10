@@ -30,7 +30,7 @@ class CollisionManager:
             entity.img_rect.bottom = entity.position.y
             entity.velocity.y = 0
             entity.on_ground = True
-            entity.jumps = 0
+            entity.jumps_remaining = 2
             entity.air_time = 0.0
 
     def __resolve_player(self, player1, player2):
