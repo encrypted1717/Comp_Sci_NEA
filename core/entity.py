@@ -133,81 +133,105 @@ class Entity(pygame.sprite.Sprite):
         self.rect = self.image.get_bounding_rect().move(self.img_rect.topleft) # used for collisions
         self.update_attack_state()
 
+    def event_handler(self, events):
+        self.acceleration = self.vector(0, 0)
+
+        inp = self.get_input_state(events)
+        self.apply_actions(inp)
+        self.apply_movement(inp)
+        self.select_animation(inp)
+
     def get_input_state(self, events):
         self.keys = pygame.key.get_pressed() # Store keys pressed
 
-        #state =
+        state = {
+            "left": self.__is_held("left"),
+            "right": self.__is_held("right"),
+            "down": self.__is_held("down"),
+            "sprint": self.__is_held("sprint"),
+            # Isn't held therefore store as false
+            "jump": False,
+            "punch": False,
+        }
+
+        # dev = device
+        jump_dev, jump_bind = self.binds["jump"]
+        punch_dev, punch_bind = self.binds["punch"]
+
+        for event in events:
+            # Jump pressed
+            if jump_dev == "key" and event.type == pygame.KEYDOWN and event.key == jump_bind: #keyboard, a key has been pressed down and is equal to the bind
+                state["jump"] = True
+            elif jump_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == jump_bind:
+                state["jump"] = True
+
+            # Punch pressed
+            if punch_dev == "key" and event.type == pygame.KEYDOWN and event.key == punch_bind: #keyboard, a key has been pressed down and is equal to the bind
+                state["jump"] = True
+            elif punch_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == punch_bind:
+                state["punch"] = True
+
+        return state
 
     def apply_actions(self, inp):
         """
         Handles actions that should occur once per press, not continuously while a key is held:
-        Jump (on KEYDOWN / MOUSEBUTTONDOWN for your bind)
+        Jump (on KEYDOWN / MOUSEBUTTONDOWN for the bind)
         Punch/attack (on KEYDOWN / MOUSEBUTTONDOWN)
         Later: dash, interact, swap weapon, parry, etc.
         """
-        pass
+        # if input is true complete that action
+        if inp["jump"]:
+            self.__jump()
+
+        if inp["punch"]:
+            self.start_attack("punch_1")
 
     def apply_movement(self, inp):
-        pass
+        # Direction of movement is dependent on how left and right keys are held
+        axis = (1 if inp["right"] else 0) - (1 if inp["left"] else 0)
+
+        if axis == 0:
+            self.acceleration.x = 0.0
+            return
+
+        self.flip_x = (axis < 0)
+        accel = self.horizontal_acceleration + (self.sprint_force if inp["sprint"] else 0.0)
+        self.acceleration.x = axis * accel
 
     def select_animation(self, inp):
-        pass
+        name = self.animation_manager.get_name()
 
-    def event_handler(self, events):
-        self.acceleration = self.vector(0, 0)
-        self.keys = pygame.key.get_pressed()
-        # Held Down
-        if self.__is_held("sprint"):
-            self.__sprint(self.flip_x)
-        elif self.animation_manager.get_name() == "sprint":
-            self.__stop_sprint(self.flip_x)
+        if name in self.dont_overrun and self.animation_manager.is_playing():
+            return
 
-        elif self.animation_manager.get_name() == "stop_sprint":
-            pass
+        if name == "stop_sprint" and self.animation_manager.is_playing():
+            return
 
-        if self.__is_held("down"):
-            self.__crouch()
+        if not self.on_ground:
+            if name not in ("jump", "double_jump"):
+                self.animation_manager.set_animation("jump", loop=False, restart=True)
+            return
 
+        if inp["down"]:
+            self.animation_manager.set_animation("crouch", loop=True, restart=False) # loop?
+            return
 
-        if self.__is_held("left"):
-            self.flip_x = True
-            if not self.__is_held("sprint") and self.animation_manager.get_name() == "sprint":
-                self.__stop_sprint(self.flip_x)
-            elif self.__is_held("sprint") and self.animation_manager.get_name() == "sprint":
-                pass
-            elif self.animation_manager.get_name() != "stop_sprint":
-                self.__walk(self.flip_x)
+        axis = (1 if inp["right"] else 0) - (1 if inp["left"] else 0)
 
-        elif self.__is_held("right"):
-            self.flip_x = False
-            if not self.__is_held("sprint") and self.animation_manager.get_name() == "sprint":
-                self.__stop_sprint(self.flip_x)
-            elif self.__is_held("sprint") and self.animation_manager.get_name() == "sprint":
-                pass
-            elif self.animation_manager.get_name() != "stop_sprint":
-                self.__walk(self.flip_x)
+        if axis != 0: # Not standing still or binds are conflicting i.e. right and left
+            if inp["sprint"]:
+                self.animation_manager.set_animation("sprint", loop=True, restart=False)
+                return
 
-        elif not self.animation_manager.get_name() in ("sprint", "stop_sprint") and self.animation_manager.get_name() not in self.dont_overrun:
-            self.animation_manager.set_animation("default", restart=True)
+            if name == "sprint":
+                self.animation_manager.set_animation("stop_sprint", loop=False, restart=True)
+                return
 
-        # Event-based actions (single press)
-        for event in events:
-                # Jump / Double Jump
-                jump_dev, jump_bind = self.binds["jump"] # Dev is short for the device i.e. keyboard or mouse
-                if jump_dev == "key" and event.type == pygame.KEYDOWN and event.key == jump_bind: # Is a key being pressed down and is it the jump bind
-                    self.__jump()
-                elif jump_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == jump_bind:
-                    self.__jump()
+            self.animation_manager.set_animation("walk", loop=True, restart=False)
+            return
 
-                # Punch 
-                punch_dev, punch_bind = self.binds["punch"]
-                if punch_dev == "key" and event.type == pygame.KEYDOWN and event.key == punch_bind:
-                    self.start_attack("punch_1")
-                elif punch_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == punch_bind:
-                    self.start_attack("punch_1")
-
-        if not self.animation_manager.is_playing() or self.animation_manager.get_name() == "default":
-            self.animation_manager.set_animation("default", restart = True)
+        self.animation_manager.set_animation("default", loop=True, restart=False)
 
     def __is_held(self, action: str):
         device, code = self.binds[action]
@@ -234,41 +258,6 @@ class Entity(pygame.sprite.Sprite):
                 self.velocity.y = -self.double_jump_force
                 self.animation_manager.set_animation("double_jump")
                 self.jumps_remaining -= 1
-
-    def __walk(self, direction):
-        if direction: # is facing left
-            self.acceleration.x = -self.horizontal_acceleration
-        else:
-            self.acceleration.x = self.horizontal_acceleration
-
-        if not self.animation_manager.get_name() in self.dont_overrun:
-            self.animation_manager.set_animation("walk")
-
-
-    def __sprint(self, direction):
-        if direction: # is facing left
-            self.acceleration.x = -self.horizontal_acceleration - self.sprint_force
-        else:
-            self.acceleration.x = self.horizontal_acceleration + self.sprint_force
-
-        if not self.animation_manager.get_name() in self.dont_overrun:
-            self.animation_manager.set_animation("sprint")
-
-    def __stop_sprint(self, direction):
-        if direction:
-            self.acceleration.x = -self.horizontal_acceleration
-        else:
-            self.acceleration.x = self.horizontal_acceleration
-
-        if not self.animation_manager.get_name() in self.dont_overrun:
-            self.animation_manager.set_animation("stop_sprint")
-
-
-    def __crouch(self):
-        if not self.animation_manager.get_name() in self.dont_overrun:
-            self.animation_manager.set_animation("crouch")
-
-
 
     def start_attack(self, name: str):
         self.attacking = True
