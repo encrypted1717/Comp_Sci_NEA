@@ -2,7 +2,7 @@ import logging
 import pygame
 from graphics.animation_manager import AnimationManager
 
-
+# TODO add more animations and support different times of punches/combos using delays/elapsed time between clicks
 class Entity(pygame.sprite.Sprite):
     def __init__(self, start_position: tuple, sprite_type: str, health = 100):
         super().__init__()
@@ -11,9 +11,7 @@ class Entity(pygame.sprite.Sprite):
         self.__log.info("Creating an entity: sprite_type = %s pos = %s", sprite_type, start_position)
         # Main setup
         self.vector = pygame.math.Vector2
-        self.flip_x = False # facing left or right (right is false)
         self.dt = None
-        self.keys = None
         self.events = None
         # Setup animations
         self.animation_manager = AnimationManager() # TODO update system so the scale can be updated and doesnt need to be stated at every load of animation
@@ -59,7 +57,7 @@ class Entity(pygame.sprite.Sprite):
             "assets/characters/default/movement/Animations/crouch.png",
             scale = 2.0
         )
-        self.dont_overrun = ("jump", "double_jump", "punch_1")
+        self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch")
         self.animation_manager.set_animation("default", restart = True)
         # Kinematic vectors / equations
         self.velocity = self.vector(0, 0) # No moving at the start
@@ -76,10 +74,25 @@ class Entity(pygame.sprite.Sprite):
         self.rect = pygame.rect.Rect(start_position, (128, 128))  # size of player
         self.image = pygame.Surface(self.rect.size)
         self.img_rect = None
+        self.flip_x = False  # facing left or right (right is false)
         # Sprite attributes
         self.health = health
         self.punch_1_damage = 6
+        self.entity_id = id(self)
+        # Movement
+        self.position = self.vector(self.rect.midbottom)
+        self.on_ground = False
+        self.jumps_remaining = 2
+        self.air_time = 0.0
+        self.double_jump_delay = 0.01  # seconds
+        # Combat
+        self.attacking = False
+        self.attack_name = None
+        self.attack_id = 0  # Increments each time an attack starts
+        self.combos = 0
+        self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
         # Keybinds
+        self.keys = None
         if self.sprite == "player1":
             self.binds = {
                 "left": ("key", pygame.K_a),
@@ -98,31 +111,12 @@ class Entity(pygame.sprite.Sprite):
                 "sprint": ("key", pygame.K_RSHIFT),
                 "punch": ("key", pygame.K_RETURN),
             }
-        # Movement
-        self.position = self.vector(self.rect.midbottom)
-        self.on_ground = False
-        self.jumps_remaining = 2
-        self.air_time = 0.0
-        self.double_jump_delay = 0.01  # seconds
-        # Unique ID
-        self.entity_id = id(self)
-        # Combat
-        self.attacking = False
-        self.attack_name = None
-        self.attack_id = 0 # Increments each time an attack starts
-        self.combos = 0
-        self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
 
-    # noinspection PyTypeChecker
     def update(self, dt):
         self.dt = dt
-        if not self.on_ground:
-            self.air_time += self.dt
-        else:
-            self.air_time = 0.0
-        # Calc Jumping
-        self.velocity.y += self.gravity * self.dt
+        self.air_time = (0.0 if self.on_ground else self.air_time + self.dt) # If not on the ground increase elapsed time
         # Calc new kinematics
+        self.velocity.y += self.gravity * self.dt # Calc gravity
         self.acceleration.x -= self.velocity.x * self.horizontal_friction  # Faster you move friction is experienced
         self.velocity += self.acceleration * self.dt  # Add vectors together
         self.position += self.velocity * self.dt + 0.5 * self.acceleration * (self.dt ** 2)
@@ -134,13 +128,14 @@ class Entity(pygame.sprite.Sprite):
         self.update_attack_state()
 
     def event_handler(self, events):
-        self.acceleration = self.vector(0, 0)
+        self.acceleration = self.vector(0, 0) # Reset accel
 
         inp = self.get_input_state(events)
         self.apply_actions(inp)
         self.apply_movement(inp)
+        self.select_animation(inp)
 
-    def get_input_state(self, events):
+    def get_input_state(self, events) -> dict:
         self.keys = pygame.key.get_pressed() # Store keys pressed
 
         state = {
@@ -158,10 +153,6 @@ class Entity(pygame.sprite.Sprite):
         punch_dev, punch_bind = self.binds["punch"]
 
         for event in events:
-            # Jump pressed
-            if event.type == pygame.KEYDOWN:
-                print(event.key)
-            print(jump_dev, jump_bind)
             if jump_dev == "key" and event.type == pygame.KEYDOWN and event.key == jump_bind: #keyboard, a key has been pressed down and is equal to the bind
                 state["jump"] = True
             elif jump_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == jump_bind:
@@ -182,12 +173,12 @@ class Entity(pygame.sprite.Sprite):
         Punch/attack (on KEYDOWN / MOUSEBUTTONDOWN)
         Later: dash, interact, swap weapon, parry, etc.
         """
-        # if input is true complete that action
+
         if inp["jump"]:
             self.__jump()
 
         if inp["punch"]:
-            self.start_attack("punch_1")
+            self.__start_attack("punch_1")
 
     def apply_movement(self, inp):
         # Direction of movement is dependent on how left and right keys are held
@@ -210,16 +201,15 @@ class Entity(pygame.sprite.Sprite):
         if name == "stop_sprint" and self.animation_manager.is_playing():
             return
 
-        if not self.on_ground:
-            if self.velocity.y < 0:
-                self.animation_manager.set_animation("jump", loop=False, restart=False)
-            else:
-                # falling: use a "fall" animation if you have one; otherwise don't force "jump"
-                self.animation_manager.set_animation("default", loop=True, restart=False)
+        if inp["jump"]:
+            self.animation_manager.set_animation("jump", loop=False, restart=True)
+            return
+        if inp["punch"]:
+            self.animation_manager.set_animation(self.attack_name, loop=False, restart=True)
             return
 
         if inp["down"]:
-            self.animation_manager.set_animation("crouch", loop=True, restart=False) # loop?
+            self.animation_manager.set_animation("crouch", loop=False, restart=False) # loop?
             return
 
         axis = (1 if inp["right"] else 0) - (1 if inp["left"] else 0)
@@ -230,13 +220,13 @@ class Entity(pygame.sprite.Sprite):
                 return
 
             if name == "sprint":
-                self.animation_manager.set_animation("stop_sprint", loop=False, restart=True)
+                self.animation_manager.set_animation("stop_sprint", loop=False, restart=False)
                 return
 
             self.animation_manager.set_animation("walk", loop=True, restart=False)
             return
 
-        self.animation_manager.set_animation("default", loop=True, restart=False)
+        self.animation_manager.set_animation("default", loop=False, restart=False)
 
     def __is_held(self, action: str):
         device, code = self.binds[action]
@@ -244,7 +234,7 @@ class Entity(pygame.sprite.Sprite):
             return self.keys[code]
         elif device == "mouse":
             mouse_buttons = pygame.mouse.get_pressed(5) # Five allows people to bind their back and forward side buttons on a mouse
-            idx = code - 1 # Unlike event.type mouse indexes start from 0 rather than 1
+            idx = code - 1 # Unlike event.type mouse, indexes start from 0 rather than 1
             if not 0 <= idx < len(mouse_buttons):
                 self.__log.warning("Bind uses mouse button %s, but only %s buttons are tracked", code, len(mouse_buttons))
                 return False
@@ -264,11 +254,10 @@ class Entity(pygame.sprite.Sprite):
                 self.animation_manager.set_animation("double_jump")
                 self.jumps_remaining -= 1
 
-    def start_attack(self, name: str):
+    def __start_attack(self, name: str):
         self.attacking = True
         self.attack_name = name
         self.attack_id += 1
-        self.animation_manager.set_animation(name, restart=True)
 
     def update_attack_state(self):
         # If we started an attack and the animation finished, stop the attack

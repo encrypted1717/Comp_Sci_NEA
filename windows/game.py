@@ -78,7 +78,6 @@ class Game(Window):
         self.surface.fill()'''
         # Draw to virtual surface
         self.colliders.draw(self.surface)
-
         self.entities.update(self.dt)
         self.collision_manager.resolve_entity(self.dt)
 
@@ -90,13 +89,8 @@ class Game(Window):
                 # TODO update health to
                 self.entities.remove(entity)
 
-            inp = getattr(entity, "last_inp", None)
-            if inp is None:
-                inp = {"left": False, "right": False, "down": False, "sprint": False, "jump": False, "punch": False}
-            entity.select_animation(inp)
-
-        self.health1_btn.update_text(f"Health: {self.player1.health}")
-        self.health2_btn.update_text(f"Health: {self.player2.health}")
+        self.health1_btn.update_text(f"Health: {self.player1.health if self.player1.health > 0 else 0}")
+        self.health2_btn.update_text(f"Health: {self.player2.health if self.player2.health > 0 else 0}")
         super().draw(self.dt)
 
         for attacker in self.entities:

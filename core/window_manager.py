@@ -37,6 +37,7 @@ class WindowManager:
                 self.windows[state] = PauseMenu(self.display, self.renderer, self.pause_background)
             else:
                 self.windows[state] = ExitMenu(self.display, self.renderer) # TODO check if this line can be improved as state is assumed to be exit
+
     def __get_window(self) -> Window:
         state = self.get_state()
         self.__ensure_window(state)
