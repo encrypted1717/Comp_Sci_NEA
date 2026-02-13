@@ -73,6 +73,7 @@ class Entity(pygame.sprite.Sprite):
         self.sprint_force = 1000.0
         self.jump_force = 600
         self.double_jump_force = 700
+        self.down_force = 1000
         self.gravity = 1250
         # Setup sprite
         self.sprite = sprite_type
@@ -190,8 +191,9 @@ class Entity(pygame.sprite.Sprite):
 
     def apply_movement(self, inp):
         # Direction of movement is dependent on how left and right keys are held
-        axis = (1 if inp["right"] else 0) - (1 if inp["left"] else 0)
+        self.acceleration.y += self.down_force if inp["down"] else 0
 
+        axis = (1 if inp["right"] else 0) - (1 if inp["left"] else 0)
         if axis == 0:
             self.acceleration.x = 0.0
             return
