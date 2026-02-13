@@ -90,6 +90,11 @@ class Game(Window):
                 # TODO update health to
                 self.entities.remove(entity)
 
+            inp = getattr(entity, "last_inp", None)
+            if inp is None:
+                inp = {"left": False, "right": False, "down": False, "sprint": False, "jump": False, "punch": False}
+            entity.select_animation(inp)
+
         self.health1_btn.update_text(f"Health: {self.player1.health}")
         self.health2_btn.update_text(f"Health: {self.player2.health}")
         super().draw(self.dt)

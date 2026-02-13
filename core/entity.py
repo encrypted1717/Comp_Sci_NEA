@@ -139,7 +139,6 @@ class Entity(pygame.sprite.Sprite):
         inp = self.get_input_state(events)
         self.apply_actions(inp)
         self.apply_movement(inp)
-        self.select_animation(inp)
 
     def get_input_state(self, events):
         self.keys = pygame.key.get_pressed() # Store keys pressed
@@ -160,6 +159,9 @@ class Entity(pygame.sprite.Sprite):
 
         for event in events:
             # Jump pressed
+            if event.type == pygame.KEYDOWN:
+                print(event.key)
+            print(jump_dev, jump_bind)
             if jump_dev == "key" and event.type == pygame.KEYDOWN and event.key == jump_bind: #keyboard, a key has been pressed down and is equal to the bind
                 state["jump"] = True
             elif jump_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == jump_bind:
@@ -167,7 +169,7 @@ class Entity(pygame.sprite.Sprite):
 
             # Punch pressed
             if punch_dev == "key" and event.type == pygame.KEYDOWN and event.key == punch_bind: #keyboard, a key has been pressed down and is equal to the bind
-                state["jump"] = True
+                state["punch"] = True
             elif punch_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == punch_bind:
                 state["punch"] = True
 
@@ -202,15 +204,18 @@ class Entity(pygame.sprite.Sprite):
     def select_animation(self, inp):
         name = self.animation_manager.get_name()
 
-        if name in self.dont_overrun and self.animation_manager.is_playing():
+        if name in self.dont_overrun and self.animation_manager.is_playing(): #check this because default counts as a playing animation
             return
 
         if name == "stop_sprint" and self.animation_manager.is_playing():
             return
 
         if not self.on_ground:
-            if name not in ("jump", "double_jump"):
-                self.animation_manager.set_animation("jump", loop=False, restart=True)
+            if self.velocity.y < 0:
+                self.animation_manager.set_animation("jump", loop=False, restart=False)
+            else:
+                # falling: use a "fall" animation if you have one; otherwise don't force "jump"
+                self.animation_manager.set_animation("default", loop=True, restart=False)
             return
 
         if inp["down"]:

@@ -27,7 +27,9 @@ class CollisionManager:
         if entity.velocity.y >= 0 and pygame.sprite.collide_rect(entity, ground):
             entity.rect.bottom = ground.rect.top
             entity.position.y = entity.rect.bottom
-            entity.img_rect.bottom = entity.position.y
+            entity.img_rect.midbottom = entity.position
+            entity.rect = entity.image.get_bounding_rect().move(entity.img_rect.topleft)
+
             entity.velocity.y = 0
             entity.on_ground = True
             entity.jumps_remaining = 2
@@ -78,9 +80,8 @@ class CollisionManager:
             top_player.position.y -= overlap
             top_player.velocity.y = 0
             top_player.on_ground = True
-            top_player.jumps = 0
+            top_player.jumps_remaining = 2
             top_player.air_time = 0.0
-
             # Move with bottom
             top_player.velocity.y = bottom_player.velocity.y
 
