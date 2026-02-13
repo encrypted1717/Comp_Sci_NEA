@@ -62,7 +62,11 @@ class Entity(pygame.sprite.Sprite):
             "assets/characters/default/other/Animations/death.png",
             scale = 2.0
         )
-        self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch", "death")
+        self.animation_manager.load_animation(
+            "charging",
+            "assets/characters/default/fighting/Animations/skill_charging.png",
+        )
+        self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch", "death", "charging")
         self.animation_manager.set_animation("default", restart = True)
         # Kinematic vectors / equations
         self.velocity = self.vector(0, 0) # No moving at the start
@@ -106,7 +110,8 @@ class Entity(pygame.sprite.Sprite):
                 "jump":("key", pygame.K_w),
                 "down": ("key", pygame.K_s),
                 "sprint": ("key", pygame.K_LSHIFT),
-                "punch": ("key", pygame.K_SPACE) #("mouse", 1) left click
+                "punch": ("key", pygame.K_SPACE), #("mouse", 1) left click
+                "charging": ("key", pygame.K_e)
             }
         elif self.sprite == "player2":
             self.binds = {
@@ -116,6 +121,7 @@ class Entity(pygame.sprite.Sprite):
                 "down": ("key", pygame.K_DOWN),
                 "sprint": ("key", pygame.K_RSHIFT),
                 "punch": ("key", pygame.K_RETURN),
+                "charging": ("key", pygame.K_KP0),
             }
 
     def update(self, dt):
@@ -157,11 +163,13 @@ class Entity(pygame.sprite.Sprite):
             # Isn't held therefore store as false
             "jump": False,
             "punch": False,
+            "charging": False
         }
 
         # dev = device
         jump_dev, jump_bind = self.binds["jump"]
         punch_dev, punch_bind = self.binds["punch"]
+        charging_dev, charging_bind = self.binds["charging"]
 
         for event in events:
             if jump_dev == "key" and event.type == pygame.KEYDOWN and event.key == jump_bind: #keyboard, a key has been pressed down and is equal to the bind
@@ -174,6 +182,12 @@ class Entity(pygame.sprite.Sprite):
                 state["punch"] = True
             elif punch_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == punch_bind:
                 state["punch"] = True
+
+
+            if charging_dev == "key" and event.type == pygame.KEYDOWN and event.key == charging_bind: #keyboard, a key has been pressed down and is equal to the bind
+                state["charging"] = True
+            elif charging_dev == "mouse" and event.type == pygame.MOUSEBUTTONDOWN and event.button == charging_bind:
+                state["charging"] = True
 
         return state
 
@@ -190,6 +204,9 @@ class Entity(pygame.sprite.Sprite):
 
         if inp["punch"]:
             self.__start_attack("punch_1")
+
+        if inp["charging"]:
+            self.__charging()
 
     def apply_movement(self, inp):
         self.acceleration.y += self.down_force if self.animation_manager.current_animation_name == "crouch" else 0 # Slight downward force ontop of gravity when crouching down
@@ -223,6 +240,9 @@ class Entity(pygame.sprite.Sprite):
         if inp["down"]:
             self.animation_manager.set_animation("crouch", loop=False, restart=False) # loop?
             return
+
+        if inp["charging"]:
+            self.animation_manager.set_animation("charging", loop=False, restart=True)
 
         axis = (1 if inp["right"] else 0) - (1 if inp["left"] else 0)
 
@@ -279,3 +299,6 @@ class Entity(pygame.sprite.Sprite):
 
     def set_bind(self, action: str, device: str, code: int):
         self.binds[action] = (device, code)
+
+    def __charging(self):
+        pass
