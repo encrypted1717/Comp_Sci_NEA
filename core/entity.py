@@ -57,7 +57,12 @@ class Entity(pygame.sprite.Sprite):
             "assets/characters/default/movement/Animations/crouch.png",
             scale = 2.0
         )
-        self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch")
+        self.animation_manager.load_animation(
+            "death",
+            "assets/characters/default/other/Animations/death.png",
+            scale = 2.0
+        )
+        self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch", "death")
         self.animation_manager.set_animation("default", restart = True)
         # Kinematic vectors / equations
         self.velocity = self.vector(0, 0) # No moving at the start
@@ -130,10 +135,13 @@ class Entity(pygame.sprite.Sprite):
     def event_handler(self, events):
         self.acceleration = self.vector(0, 0) # Reset accel
 
-        inp = self.get_input_state(events)
-        self.apply_actions(inp)
-        self.apply_movement(inp)
-        self.select_animation(inp)
+        if self.health > 0:
+            inp = self.get_input_state(events)
+            self.apply_actions(inp)
+            self.apply_movement(inp)
+            self.select_animation(inp)
+        else:
+            self.animation_manager.set_animation("death", loop=False, restart=False)
 
     def get_input_state(self, events) -> dict:
         self.keys = pygame.key.get_pressed() # Store keys pressed

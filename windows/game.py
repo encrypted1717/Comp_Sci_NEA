@@ -82,7 +82,7 @@ class Game(Window):
         self.collision_manager.resolve_entity(self.dt)
 
         for entity in self.entities:
-            if entity.health > 0:
+            if entity.health > 0 or entity.animation_manager.is_playing():
                 self.surface.blit(entity.image, entity.img_rect.topleft)
                 #pygame.draw.rect(self.surface,(255, 0, 0), entity.rect, 5) # Collision/hit box
             else:
