@@ -100,7 +100,7 @@ class Game(Window):
                         continue
                     self.combat_system.try_apply_hits(attacker, defender)
 
-                '''# Debug: draw attacker hitbox if attacking
+                # Debug: draw attacker hitbox if attacking
                 attack_data = self.combat_system.attacks.get(attacker.attack_name)
                 frame_index = attacker.animation_manager.get_frame_index()
 
@@ -110,7 +110,7 @@ class Game(Window):
                     continue
 
                 hitbox = self.combat_system.build_hitbox(attacker, hitbox_data)
-                pygame.draw.rect(self.surface, (0, 255, 0), hitbox, 10)'''
+                pygame.draw.rect(self.surface, (0, 255, 0), hitbox, 10)
 
         self.combat_system.update(self.entities)
         self.last_frame = self.surface.copy()

@@ -21,9 +21,8 @@ class Entity(pygame.sprite.Sprite):
         self.img_rect = None
         self.flip_x = False  # facing left or right (right is false)
         # Sprite attributes
-        self.sprite_scale = 1.3 # Size
+        self.sprite_scale = 1.5 # Size
         self.health = health
-        self.punch_1_damage = 6
         self.entity_id = id(self)
         # Setup animations
         self.animation_manager = AnimationManager() # TODO update system so the scale can be updated and doesnt need to be stated at every load of animation
@@ -36,18 +35,21 @@ class Entity(pygame.sprite.Sprite):
         self.animation_manager.load_animation(
             "punch_1",
             "assets\\characters\\default\\fighting\\Animations\\punch_1.png",
-            scale = self.sprite_scale
+            scale = self.sprite_scale,
+            cooldown = 0.035
         )
         self.animation_manager.load_animation(
             "jump",
             "assets\\characters\\default\\movement\\Animations\\upward_jump.png",
             scale = self.sprite_scale,
-            frame_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0]
+            frame_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0],
+            cooldown = 0.04
         )
         self.animation_manager.load_animation(
             "double_jump",
             "assets/characters/default/movement/Animations/double_jump.png",
-            scale = self.sprite_scale
+            scale = self.sprite_scale,
+            cooldown = 0.04
         )
         self.animation_manager.load_animation(
             "walk",
@@ -67,7 +69,8 @@ class Entity(pygame.sprite.Sprite):
         self.animation_manager.load_animation(
             "crouch",
             "assets/characters/default/movement/Animations/crouch.png",
-            scale = self.sprite_scale
+            scale = self.sprite_scale,
+            cooldown = 0.035
         )
         self.animation_manager.load_animation(
             "death",
@@ -79,15 +82,19 @@ class Entity(pygame.sprite.Sprite):
             "assets/characters/default/fighting/Animations/skill_charging.png",
             scale = self.sprite_scale
         )
+        self.animation_manager.load_animation(
+            "jump_strike",
+            "assets/characters/default/movement/Animations/jump_strike.png"
+        )
         self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch", "death", "charging")
-        self.animation_manager.set_animation("default", restart = True)
+        self.animation_manager.set_animation("default")
         # Kinematic vectors / equations
         self.velocity = self.vector(0, 0) # No moving at the start
         self.acceleration = self.vector(0, 0) # No accel at the start
         # Kinematic constants
-        self.horizontal_acceleration = 2000.0
+        self.horizontal_acceleration = 2250.0 # Walking speed
         self.horizontal_friction = 11 # Depending on the situation this is also air resistance
-        self.sprint_force = 1000.0
+        self.sprint_force = 1500
         self.jump_force = 600
         self.double_jump_force = 700
         self.down_force = 1500
@@ -99,6 +106,8 @@ class Entity(pygame.sprite.Sprite):
         self.air_time = 0.0
         self.double_jump_delay = 0.01  # seconds
         # Combat
+        self.punch_1_damage = 6
+        self.jump_strike_damage = 0
         self.attacking = False
         self.attack_name = None
         self.attack_id = 0  # Increments each time an attack starts
@@ -139,7 +148,7 @@ class Entity(pygame.sprite.Sprite):
         if self.velocity != 0:
             self.on_ground = False
         # Update Sprite
-        self.animation_manager.update(self.dt, 0.05)
+        self.animation_manager.update(self.dt)
         self.image = pygame.transform.flip(self.animation_manager.get_frame(), self.flip_x, False)
         self.img_rect = self.image.get_rect(midbottom = self.position)
         self.rect = self.image.get_bounding_rect().move(self.img_rect.topleft) # used for collisions
@@ -207,7 +216,10 @@ class Entity(pygame.sprite.Sprite):
             self.__jump()
 
         if inp["punch"]:
-            self.__start_attack("punch_1")
+            if self.on_ground:
+                self.__start_attack("punch_1")
+            else:
+                self.__start_attack("jump_strike")
 
         if inp["charging"]:
             self.__charging()

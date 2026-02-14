@@ -28,6 +28,7 @@ class AnimationManager:
         self.elapsed_time = 0
         self.current_frame = 0
         self.current_animation_name = None
+        self.current_animation_cooldown = 0
         self.current_animation_frames = []
         self.loop = True
         self.freeze = False
@@ -37,7 +38,8 @@ class AnimationManager:
                        path: str,
                        scale: float = 1.0,
                        frame_indices: list | tuple | None = None,
-                       dimension: int | None = None
+                       dimension: int | None = None,
+                       cooldown: float = 0.1
                        ) -> None:
         """
             Load an animation from a single-row sprite sheet of square frames.
@@ -52,6 +54,7 @@ class AnimationManager:
                 scale: scale factor applied to every frame.
                 frame_indices: slice frames given. If None, all frames in sprite sheet are used.
                 dimension: width and height of each square frame. If None, the frame size is inferred from the sprite sheet height.
+                cooldown: time between frames are displayed. The smaller the cooldown, the faster the animation plays out.
 
             Raises:
                 RuntimeError: If the sprite sheet cannot be loaded.
@@ -92,7 +95,7 @@ class AnimationManager:
             self.log.exception("No frames were loaded for animation: %s in path %s", name, path)
             raise ValueError(f"No frames were loaded for animation: {name}, {path}")
 
-        self.animations[name] = frames
+        self.animations[name] = (frames, cooldown)
 
     def pause(self) -> None:
         """Pause animation on current frame"""
@@ -110,21 +113,17 @@ class AnimationManager:
             return True
         return self.current_frame < len(self.current_animation_frames) - 1  # Checks if the animation has played all its frames
 
-    def update(self,
-               dt: float,
-               cooldown: float = 0.1
-               ) -> None:
+    def update(self, dt: float) -> None:
         """
             Updates the animation by switching to the next frame once elapsed time is larger than the cooldown.
 
             Args:
                 dt: delta time to measure time passed
-                cooldown: time in seconds before the next frame can be switched
         """
 
         if not self.freeze and self.current_animation_frames:
             self.elapsed_time += dt
-            if self.elapsed_time >= cooldown:
+            if self.elapsed_time >= self.current_animation_cooldown:
                 self.elapsed_time = 0
                 self.current_frame += 1
                 if self.current_frame >= len(self.current_animation_frames):
@@ -159,9 +158,10 @@ class AnimationManager:
             self.log.error("Animation %s does not exist or hasn't been loaded", name)
             raise KeyError(f"Animation {name} does not exist or hasn't been loaded")
 
-        if self.animations[name] != self.current_animation_frames:
+        if self.animations[name][0] != self.current_animation_frames:
             self.current_animation_name = name
-            self.current_animation_frames = self.animations[name]
+            self.current_animation_cooldown = self.animations[name][1]
+            self.current_animation_frames = self.animations[name][0]
             self.current_frame = 0
             self.elapsed_time = 0
 

@@ -18,6 +18,15 @@ class CombatSystem:
                     3: (40, -40, 65, 40),
                     4: (55, -40, 75, 40)
                 }
+            },
+            "jump_strike": {
+                "damage_attr": "jump_strike_damage",
+                "active_frames": {1, 2},
+                "hitbox": {
+                    2: (20, -40, 50, 40),
+                    3: (40, -40, 65, 40),
+                    4: (55, -40, 75, 40)
+                }
             }
         }
 
