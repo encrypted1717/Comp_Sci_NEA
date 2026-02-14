@@ -15,12 +15,13 @@ class Entity(pygame.sprite.Sprite):
         self.events = None
         # Setup sprite
         self.sprite = sprite_type
-        self.rect = pygame.rect.Rect(start_position, (128, 128))  # size of player
+        self.sprite_size = (128, 128) # Animation resolution
+        self.rect = pygame.rect.Rect(start_position, self.sprite_size)  # size of player
         self.image = pygame.Surface(self.rect.size)
         self.img_rect = None
         self.flip_x = False  # facing left or right (right is false)
         # Sprite attributes
-        self.sprite_scale = 1.25 # Size
+        self.sprite_scale = 1.3 # Size
         self.health = health
         self.punch_1_damage = 6
         self.entity_id = id(self)
@@ -102,7 +103,6 @@ class Entity(pygame.sprite.Sprite):
         self.attack_name = None
         self.attack_id = 0  # Increments each time an attack starts
         self.combos = 0
-        self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
         # Keybinds
         self.keys = None
         if self.sprite == "player1":
@@ -125,6 +125,8 @@ class Entity(pygame.sprite.Sprite):
                 "punch": ("key", pygame.K_RETURN),
                 "charging": ("key", pygame.K_KP0),
             }
+
+            self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
 
     def update(self, dt):
         self.dt = dt
@@ -232,7 +234,6 @@ class Entity(pygame.sprite.Sprite):
         if name == "stop_sprint" and self.animation_manager.is_playing():
             return
 
-        # TODO jumps are occurring mid air after running another animation i.e. crouching after double jump allows another jump anim even
         if inp["jump"]: #TODO Currently animation for jumping is being done by another function
             return
         if inp["punch"]:
