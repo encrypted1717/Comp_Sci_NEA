@@ -232,9 +232,8 @@ class Entity(pygame.sprite.Sprite):
         if name == "stop_sprint" and self.animation_manager.is_playing():
             return
 
-        # TODO jumps are occuring mid air after running another animation i.e. crouching after double jump allows another jump anim even
-        if inp["jump"]:
-            self.animation_manager.set_animation("jump", loop=False, restart=True)
+        # TODO jumps are occurring mid air after running another animation i.e. crouching after double jump allows another jump anim even
+        if inp["jump"]: #TODO Currently animation for jumping is being done by another function
             return
         if inp["punch"]:
             self.animation_manager.set_animation(self.attack_name, loop=False, restart=True)
