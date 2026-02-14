@@ -13,58 +13,70 @@ class Entity(pygame.sprite.Sprite):
         self.vector = pygame.math.Vector2
         self.dt = None
         self.events = None
+        # Setup sprite
+        self.sprite = sprite_type
+        self.rect = pygame.rect.Rect(start_position, (128, 128))  # size of player
+        self.image = pygame.Surface(self.rect.size)
+        self.img_rect = None
+        self.flip_x = False  # facing left or right (right is false)
+        # Sprite attributes
+        self.sprite_scale = 1.25 # Size
+        self.health = health
+        self.punch_1_damage = 6
+        self.entity_id = id(self)
         # Setup animations
         self.animation_manager = AnimationManager() # TODO update system so the scale can be updated and doesnt need to be stated at every load of animation
         self.animation_manager.load_animation(
             "default",
             "assets\\characters\\default\\fighting\\Animations\\punch_1.png",
-            scale = 2.0,
+            scale = self.sprite_scale,
             frame_indices = [0]
         )
         self.animation_manager.load_animation(
             "punch_1",
             "assets\\characters\\default\\fighting\\Animations\\punch_1.png",
-            scale = 2.0
+            scale = self.sprite_scale
         )
         self.animation_manager.load_animation(
             "jump",
             "assets\\characters\\default\\movement\\Animations\\upward_jump.png",
-            scale = 2.0,
+            scale = self.sprite_scale,
             frame_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0]
         )
         self.animation_manager.load_animation(
             "double_jump",
             "assets/characters/default/movement/Animations/double_jump.png",
-            scale = 2.0
+            scale = self.sprite_scale
         )
         self.animation_manager.load_animation(
             "walk",
             "assets/characters/default/movement/Animations/walking.png",
-            scale = 2.0
+            scale = self.sprite_scale
         )
         self.animation_manager.load_animation(
             "sprint",
             "assets/characters/default/movement/Animations/running.png",
-            scale = 2.0
+            scale = self.sprite_scale
         )
         self.animation_manager.load_animation(
             "stop_sprint",
             "assets/characters/default/movement/Animations/stop_running.png",
-            scale = 2.0
+            scale = self.sprite_scale
         )
         self.animation_manager.load_animation(
             "crouch",
             "assets/characters/default/movement/Animations/crouch.png",
-            scale = 2.0
+            scale = self.sprite_scale
         )
         self.animation_manager.load_animation(
             "death",
             "assets/characters/default/other/Animations/death.png",
-            scale = 2.0
+            scale = self.sprite_scale
         )
         self.animation_manager.load_animation(
             "charging",
             "assets/characters/default/fighting/Animations/skill_charging.png",
+            scale = self.sprite_scale
         )
         self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch", "death", "charging")
         self.animation_manager.set_animation("default", restart = True)
@@ -79,16 +91,6 @@ class Entity(pygame.sprite.Sprite):
         self.double_jump_force = 700
         self.down_force = 1500
         self.gravity = 1250
-        # Setup sprite
-        self.sprite = sprite_type
-        self.rect = pygame.rect.Rect(start_position, (128, 128))  # size of player
-        self.image = pygame.Surface(self.rect.size)
-        self.img_rect = None
-        self.flip_x = False  # facing left or right (right is false)
-        # Sprite attributes
-        self.health = health
-        self.punch_1_damage = 6
-        self.entity_id = id(self)
         # Movement
         self.position = self.vector(self.rect.midbottom)
         self.on_ground = False
@@ -230,6 +232,7 @@ class Entity(pygame.sprite.Sprite):
         if name == "stop_sprint" and self.animation_manager.is_playing():
             return
 
+        # TODO jumps are occuring mid air after running another animation i.e. crouching after double jump allows another jump anim even
         if inp["jump"]:
             self.animation_manager.set_animation("jump", loop=False, restart=True)
             return
