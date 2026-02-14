@@ -12,7 +12,7 @@ from utils.tile_map import TileMap
 class MapGeneration:
     def __init__(self):
         # Virtual/design map setup
-        self.tile_size = 60
+        self.tile_size = 40
         self.game_map = TileMap.game_map1
         self.solid_tiles = []
         self.non_solid_tiles = []
