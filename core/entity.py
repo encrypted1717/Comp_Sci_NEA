@@ -84,9 +84,10 @@ class Entity(pygame.sprite.Sprite):
         )
         self.animation_manager.load_animation(
             "jump_strike",
-            "assets/characters/default/movement/Animations/jump_strike.png"
+            "assets/characters/default/movement/Animations/jump_strike.png",
+            scale = self.sprite_scale
         )
-        self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch", "death", "charging")
+        self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch", "death", "charging", "jump_strike")
         self.animation_manager.set_animation("default")
         # Kinematic vectors / equations
         self.velocity = self.vector(0, 0) # No moving at the start
