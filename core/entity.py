@@ -6,24 +6,40 @@ from graphics.animation_manager import AnimationManager
 class Entity(pygame.sprite.Sprite):
     def __init__(self, start_position: tuple, sprite_type: str, health = 100):
         super().__init__()
+
         # Logging setup
         self.__log = logging.getLogger(__name__)
         self.__log.info("Creating an entity: sprite_type = %s pos = %s", sprite_type, start_position)
+
         # Main setup
         self.vector = pygame.math.Vector2
         self.dt = None
         self.events = None
-        # Setup sprite
+
         self.sprite = sprite_type
-        self.sprite_size = (128, 128) # Animation resolution
-        self.rect = pygame.rect.Rect(start_position, self.sprite_size)  # size of player
-        self.image = pygame.Surface(self.rect.size)
-        self.img_rect = None
+        self.sprite_scale = 1.5
+        self.frame_size = (int(128 * self.sprite_scale), int(128 * self.sprite_scale))  # temp
+
+        # Fixed physics body size (28x66 scaled)
+        body_w = int(36 * self.sprite_scale)
+        body_h = int(72 * self.sprite_scale)
+        self.body = pygame.Rect(0, 0, body_w, body_h)
+
+        # Start_position is MIDBOTTOM (feet)
+        self.position = self.vector(start_position)
+        self.body.midbottom = (int(self.position.x), int(self.position.y))
+        self.rect = self.body
+
+        # Temp image until first animation frame comes in
+        self.image = pygame.Surface(self.frame_size, pygame.SRCALPHA)
+        self.img_rect = self.image.get_rect(midbottom=self.body.midbottom)
+        self.sprite_bounds = self.image.get_bounding_rect().move(self.img_rect.topleft) # box created depending on anim
         self.flip_x = False  # facing left or right (right is false)
+
         # Sprite attributes
-        self.sprite_scale = 1.5 # Size
         self.health = health
         self.entity_id = id(self)
+
         # Setup animations
         self.animation_manager = AnimationManager() # TODO update system so the scale can be updated and doesnt need to be stated at every load of animation
         self.animation_manager.load_animation(
@@ -89,9 +105,11 @@ class Entity(pygame.sprite.Sprite):
         )
         self.dont_overrun = ("jump", "double_jump", "punch_1", "crouch", "death", "charging", "jump_strike")
         self.animation_manager.set_animation("default")
+
         # Kinematic vectors / equations
         self.velocity = self.vector(0, 0) # No moving at the start
         self.acceleration = self.vector(0, 0) # No accel at the start
+
         # Kinematic constants
         self.horizontal_acceleration = 2250.0 # Walking speed
         self.horizontal_friction = 11 # Depending on the situation this is also air resistance
@@ -100,12 +118,13 @@ class Entity(pygame.sprite.Sprite):
         self.double_jump_force = 700
         self.down_force = 1500
         self.gravity = 1250
+
         # Movement
-        self.position = self.vector(self.rect.midbottom)
         self.on_ground = False
         self.jumps_remaining = 2
         self.air_time = 0.0
-        self.double_jump_delay = 0.01  # seconds
+        self.double_jump_delay = 0.01  # Seconds
+
         # Combat
         self.punch_1_damage = 6
         self.jump_strike_damage = 0
@@ -113,6 +132,7 @@ class Entity(pygame.sprite.Sprite):
         self.attack_name = None
         self.attack_id = 0  # Increments each time an attack starts
         self.combos = 0
+
         # Keybinds
         self.keys = None
         if self.sprite == "player1":
@@ -146,13 +166,16 @@ class Entity(pygame.sprite.Sprite):
         self.acceleration.x -= self.velocity.x * self.horizontal_friction  # Faster you move friction is experienced
         self.velocity += self.acceleration * self.dt  # Add vectors together
         self.position += self.velocity * self.dt + 0.5 * self.acceleration * (self.dt ** 2)
-        if self.velocity != 0:
-            self.on_ground = False
         # Update Sprite
+        self.body.midbottom = (int(self.position.x), int(self.position.y))
+        self.rect = self.body
+
         self.animation_manager.update(self.dt)
-        self.image = pygame.transform.flip(self.animation_manager.get_frame(), self.flip_x, False)
-        self.img_rect = self.image.get_rect(midbottom = self.position)
-        self.rect = self.image.get_bounding_rect().move(self.img_rect.topleft) # used for collisions
+
+        frame = self.animation_manager.get_frame()
+        self.image = pygame.transform.flip(frame, self.flip_x, False)
+        self.sync_img_rect_to_body()
+
         self.update_attack_state()
 
     def event_handler(self, events):
@@ -301,6 +324,7 @@ class Entity(pygame.sprite.Sprite):
                 self.velocity.y = -self.double_jump_force
                 self.animation_manager.set_animation("double_jump")
                 self.jumps_remaining -= 1
+            self.on_ground = False
 
     def __start_attack(self, name: str):
         self.attacking = True
@@ -318,3 +342,27 @@ class Entity(pygame.sprite.Sprite):
 
     def __charging(self):
         pass
+
+    def set_body_size(self, w, h):
+        midbottom = self.body.midbottom
+        self.body.size = (w, h)
+        self.body.midbottom = midbottom
+
+    def sync_img_rect_to_body(self):
+        """
+        Align the visible pixels of the current image to the physics body anchor.
+        This prevents left/right flipping causing horizontal offsets due to the transparent padding (bounding rect)
+        """
+        bounds = self.image.get_bounding_rect()  # local rect around non-transparent pixels
+
+        # Full image rect (same size as surface)
+        self.img_rect = self.image.get_rect()
+
+        # Place image so that bounds.midbottom lands on body.midbottom
+        self.img_rect.topleft = (
+            self.body.midbottom[0] - bounds.midbottom[0],
+            self.body.midbottom[1] - bounds.midbottom[1],
+        )
+
+        # World-space bounds (useful for debugging)
+        self.sprite_bounds = bounds.move(self.img_rect.topleft)

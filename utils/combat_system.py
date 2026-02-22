@@ -74,7 +74,7 @@ class CombatSystem:
 
         hitbox = self.build_hitbox(attacker, hitbox_data)
 
-        if hitbox.colliderect(defender.rect):
+        if hitbox.colliderect(defender.sprite_bounds):
             damage = getattr(attacker, attack_data["damage_attr"], 0)
             defender.health -= damage
             self.__hit_registry.add(hit_key)

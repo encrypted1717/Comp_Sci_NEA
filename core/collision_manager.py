@@ -24,11 +24,14 @@ class CollisionManager:
 
     def __resolve_ground(self, entity, ground):
         # Only resolve if falling
-        if entity.velocity.y >= 0 and pygame.sprite.collide_rect(entity, ground):
+        feet = pygame.Rect(entity.body.left, entity.body.bottom, entity.body.width, 2) # A small sensor just below the feet so "touching" counts as grounded
+        if entity.velocity.y >= 0 and feet.colliderect(ground.rect):
             entity.rect.bottom = ground.rect.top
             entity.position.y = entity.rect.bottom
-            entity.img_rect.midbottom = entity.position
-            entity.rect = entity.image.get_bounding_rect().move(entity.img_rect.topleft)
+
+            entity.body.midbottom = entity.position
+            entity.rect = entity.body
+            entity.sync_img_rect_to_body()
 
             entity.velocity.y = 0
             entity.on_ground = True
@@ -55,11 +58,6 @@ class CollisionManager:
             player1.position.x += push
             player2.position.x -= push
 
-        player1.img_rect.midbottom = player1.position
-        player2.img_rect.midbottom = player2.position
-        player1.rect = player1.image.get_bounding_rect().move(player1.img_rect.topleft)
-        player2.rect = player2.image.get_bounding_rect().move(player2.img_rect.topleft)
-
         # Velocity logic
         if player1.velocity.x != 0 and player2.velocity.x != 0:
             # Both moving → stop both
@@ -73,6 +71,13 @@ class CollisionManager:
             else:
                 player1.velocity.x = player2.velocity.x * 0.6
                 player2.velocity.x *= 0.4
+
+        player1.body.midbottom = player1.position
+        player2.body.midbottom = player2.position
+        player1.rect = player1.body
+        player2.rect = player2.body
+        player1.sync_img_rect_to_body()
+        player2.sync_img_rect_to_body()
 
     def __resolve_vertical_players(self, top_player, bottom_player, overlap):
         if top_player.rect.centery < bottom_player.rect.centery:
@@ -90,7 +95,9 @@ class CollisionManager:
             bottom_player.position.y += overlap
             bottom_player.velocity.y = 0
 
-        top_player.img_rect.midbottom = top_player.position
-        bottom_player.img_rect.midbottom = bottom_player.position
-        top_player.rect = top_player.image.get_bounding_rect().move(top_player.img_rect.topleft)
-        bottom_player.rect = bottom_player.image.get_bounding_rect().move(bottom_player.img_rect.topleft)
+        top_player.body.midbottom = top_player.position
+        bottom_player.body.midbottom = bottom_player.position
+        top_player.rect = top_player.body
+        bottom_player.rect = bottom_player.body
+        top_player.sync_img_rect_to_body()
+        bottom_player.sync_img_rect_to_body()

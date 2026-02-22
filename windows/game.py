@@ -89,6 +89,12 @@ class Game(Window):
                 # TODO update health to
                 self.entities.remove(entity)
 
+            # Collision body (fixed)
+            pygame.draw.rect(self.surface, (255, 0, 0), entity.body, 2)
+
+            # Sprite pixel bounds change per animation frame
+            pygame.draw.rect(self.surface, (0, 255, 0), entity.sprite_bounds, 2)
+
         self.health1_btn.update_text(f"Health: {self.player1.health if self.player1.health > 0 else 0}")
         self.health2_btn.update_text(f"Health: {self.player2.health if self.player2.health > 0 else 0}")
         super().draw(self.dt)
@@ -110,7 +116,7 @@ class Game(Window):
                     continue
 
                 hitbox = self.combat_system.build_hitbox(attacker, hitbox_data)
-                pygame.draw.rect(self.surface, (0, 255, 0), hitbox, 10)
+                pygame.draw.rect(self.surface, (0, 255, 255), hitbox, 10)
 
         self.combat_system.update(self.entities)
         self.last_frame = self.surface.copy()
