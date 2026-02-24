@@ -23,13 +23,11 @@ class CollisionManager:
 
 
     def __resolve_ground(self, entity, ground):
-        # Only resolve if falling
-        feet = pygame.Rect(entity.body.left, entity.body.bottom, entity.body.width, 2) # A small sensor just below the feet so "touching" counts as grounded
+        # Only resolve if falling and hit the ground
+        feet = pygame.Rect(entity.body.left, entity.body.bottom, entity.body.width, 1.3 * entity.sprite_scale) # A small sensor just below the feet so "touching" counts as grounded
         if entity.velocity.y >= 0 and feet.colliderect(ground.rect):
-            entity.rect.bottom = ground.rect.top
-            entity.position.y = entity.rect.bottom
-
-            entity.body.midbottom = entity.position
+            entity.body.bottom = ground.rect.top
+            entity.position.y = entity.body.bottom
             entity.rect = entity.body
             entity.sync_img_rect_to_body()
 
@@ -37,6 +35,9 @@ class CollisionManager:
             entity.on_ground = True
             entity.jumps_remaining = 2
             entity.air_time = 0.0
+
+        # Only resolve if hitting side of ground
+        #if
 
     def __resolve_player(self, player1, player2):
         overlap = player1.rect.clip(player2.rect)

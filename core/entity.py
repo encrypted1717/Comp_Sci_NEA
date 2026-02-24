@@ -20,7 +20,7 @@ class Entity(pygame.sprite.Sprite):
         self.sprite_scale = 1.5
         self.frame_size = (int(128 * self.sprite_scale), int(128 * self.sprite_scale))  # temp
 
-        # Fixed physics body size (28x66 scaled)
+        # Fixed body size (36x72 scaled)
         body_w = int(36 * self.sprite_scale)
         body_h = int(72 * self.sprite_scale)
         self.body = pygame.Rect(0, 0, body_w, body_h)
@@ -30,8 +30,7 @@ class Entity(pygame.sprite.Sprite):
         self.body.midbottom = (int(self.position.x), int(self.position.y))
         self.rect = self.body
 
-        # Temp image until first animation frame comes in
-        self.image = pygame.Surface(self.frame_size, pygame.SRCALPHA)
+        self.image = pygame.Surface(self.frame_size, pygame.SRCALPHA) # Temp image until first animation frame comes in
         self.img_rect = self.image.get_rect(midbottom=self.body.midbottom)
         self.sprite_bounds = self.image.get_bounding_rect().move(self.img_rect.topleft) # box created depending on anim
         self.flip_x = False  # facing left or right (right is false)
