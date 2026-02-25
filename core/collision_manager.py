@@ -11,9 +11,14 @@ class CollisionManager:
         self.dt = dt
         for entity in self.entities:
             entity.on_ground = False
+            # Resolve ground horizontally first
             for collider in self.colliders:
                 if collider.collider_type == "ground":
-                    self.__resolve_ground(entity, collider)
+                    self.__resolve_ground_horizontal(entity, collider)
+            # Resolve ground vertically next. This prevents rules overlapping (i.e. entity runs to wall and instead of stopping he gets teleported ontop of wall because order is wrong)
+            for collider in self.colliders:
+                if collider.collider_type == "ground":
+                    self.__resolve_ground_vertical(entity, collider)
             if entity.sprite == "player1":
                 collided_entities = pygame.sprite.spritecollide(entity, self.entities, False)
                 for collided_entity in collided_entities:
@@ -21,23 +26,52 @@ class CollisionManager:
                         continue
                     self.__resolve_player(entity, collided_entity)
 
+    def __resolve_ground_horizontal(self, entity, ground):
+        # TODO Check if sensors set are adjusted size
+        # Wall Collisions
+        sensor_width = int(1.4 * entity.sprite_scale)
+        left_sensor = pygame.Rect(entity.body.left - sensor_width, entity.body.top, sensor_width, entity.body.height)
+        right_sensor = pygame.Rect(entity.body.right, entity.body.top, sensor_width, entity.body.height)
 
-    def __resolve_ground(self, entity, ground):
-        # Only resolve if falling and hit the ground
-        feet = pygame.Rect(entity.body.left, entity.body.bottom, entity.body.width, 1.3 * entity.sprite_scale) # A small sensor just below the feet so "touching" counts as grounded
-        if entity.velocity.y >= 0 and feet.colliderect(ground.rect):
+        if entity.velocity.x > 0 and right_sensor.colliderect(ground.rect):
+            entity.body.right = ground.rect.left
+            entity.position.x = entity.body.midbottom[0]
+            entity.velocity.x = 0
+
+        elif entity.velocity.x < 0 and left_sensor.colliderect(ground.rect):
+            entity.body.left = ground.rect.right
+            entity.position.x = entity.body.midbottom[0]
+            entity.velocity.x = 0
+
+        # Sync rects
+        entity.rect = entity.body
+        entity.sync_img_rect_to_body()
+
+    def __resolve_ground_vertical(self, entity, ground):
+        # TODO Check if sensors set are adjusted size
+        sensor_height = int(1.4 * entity.sprite_scale)
+
+        # Only resolve if landing on ground
+        feet = pygame.Rect(entity.body.left, entity.body.bottom, entity.body.width, sensor_height)  # A small sensor just below the feet so "touching" counts as grounded
+        if entity.velocity.y >= 0 and feet.colliderect(ground.rect): # Falling and colliding
             entity.body.bottom = ground.rect.top
             entity.position.y = entity.body.bottom
-            entity.rect = entity.body
-            entity.sync_img_rect_to_body()
-
             entity.velocity.y = 0
             entity.on_ground = True
             entity.jumps_remaining = 2
             entity.air_time = 0.0
 
-        # Only resolve if hitting side of ground
-        #if
+        # Vertical ceiling hit
+        head_sensor = pygame.Rect(entity.body.left, entity.body.top - sensor_height, entity.body.width, sensor_height)
+        if entity.velocity.y < 0 and head_sensor.colliderect(ground.rect): # If jumping and colliding
+            # Snap entity to top of ground
+            entity.body.top = ground.rect.bottom
+            entity.position.y = entity.body.bottom
+            entity.velocity.y = 0
+
+        # Sync rects
+        entity.rect = entity.body
+        entity.sync_img_rect_to_body()
 
     def __resolve_player(self, player1, player2):
         overlap = player1.rect.clip(player2.rect)

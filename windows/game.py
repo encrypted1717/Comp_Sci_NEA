@@ -81,6 +81,10 @@ class Game(Window):
         self.entities.update(self.dt)
         self.collision_manager.resolve_entity(self.dt)
 
+        # Debug
+        for collider in self.colliders:
+            pygame.draw.rect(collider.image, pygame.Color("white"), collider.image.get_rect(), 2)
+
         for entity in self.entities:
             if entity.health > 0 or entity.animation_manager.is_playing():
                 self.surface.blit(entity.image, entity.img_rect.topleft)
