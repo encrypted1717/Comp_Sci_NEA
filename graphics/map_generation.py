@@ -1,6 +1,9 @@
 """Tile Map Generation"""
+import random
 
 import pygame
+import logging
+from random import choice
 from core.collider import Collider
 from utils.tile_map import TileMap
 
@@ -11,9 +14,12 @@ from utils.tile_map import TileMap
 """
 class MapGeneration:
     def __init__(self):
+        # Logging setup
+        self.log = logging.getLogger(__name__)
+        self.log.info("Initialising MapGeneration module")
         # Virtual/design map setup
         self.tile_size = 40
-        self.game_map = TileMap.game_map1
+        self.game_map = choice(TileMap.maps)
         self.solid_tiles = []
         self.non_solid_tiles = []
 
@@ -98,6 +104,7 @@ class MapGeneration:
                     rect_height,
                 )
                 self.solid_tiles.append(Collider(merged_rect, "platform"))
+        self.log.info("Generating Map")
 
     def is_solid_tile(self, grid: list, row: int, column: int) -> bool:
         return grid[row][column] > 0
