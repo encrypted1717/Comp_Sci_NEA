@@ -97,7 +97,7 @@ class MapGeneration:
                     rect_width,
                     rect_height,
                 )
-                self.solid_tiles.append(Collider(merged_rect, "ground"))
+                self.solid_tiles.append(Collider(merged_rect, "platform"))
 
     def is_solid_tile(self, grid: list, row: int, column: int) -> bool:
         return grid[row][column] > 0

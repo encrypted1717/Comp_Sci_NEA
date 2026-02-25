@@ -113,8 +113,8 @@ class Entity(pygame.sprite.Sprite):
         self.horizontal_acceleration = 2250.0 # Walking speed
         self.horizontal_friction = 11 # Depending on the situation this is also air resistance
         self.sprint_force = 1500
-        self.jump_force = 600
-        self.double_jump_force = 700
+        self.jump_force = 700
+        self.double_jump_force = 600
         self.down_force = 1500
         self.gravity = 1250
 
