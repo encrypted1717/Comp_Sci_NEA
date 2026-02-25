@@ -1,8 +1,12 @@
 import pygame
-
+import logging
 
 class CollisionManager:
     def __init__(self, entities : pygame.sprite.Group ,colliders : pygame.sprite.Group) -> None:
+        # Logging setup
+        self.log = logging.getLogger(__name__)
+        self.log.info("Initialising Collision Manager module")
+        # Setup
         self.dt = 1
         self.entities = entities
         self.colliders = colliders
@@ -82,6 +86,7 @@ class CollisionManager:
         else:
             self.__resolve_vertical_players(player1, player2, overlap.height)
 
+    # TODO fix bug around jumping over player?
     def __resolve_horizontal_players(self, player1, player2, overlap):
         player1_left = player1.rect.centerx < player2.rect.centerx
         push = overlap / 2
