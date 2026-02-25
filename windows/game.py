@@ -85,13 +85,15 @@ class Game(Window):
         for collider in self.colliders:
             pygame.draw.rect(collider.image, pygame.Color("white"), collider.image.get_rect(), 2)
 
+        # TODO Health should update to 0 if fall off map
         for entity in self.entities:
-            if entity.health > 0 or entity.animation_manager.is_playing():
+            if (entity.health > 0 or entity.animation_manager.is_playing()) and self.surface.get_rect().contains(entity.body):
                 self.surface.blit(entity.image, entity.img_rect.topleft)
-                #pygame.draw.rect(self.surface,(255, 0, 0), entity.rect, 5) # Collision/hit box
             else:
-                # TODO update health to
+                entity.health = 0
                 self.entities.remove(entity)
+
+
 
             # Collision body (fixed)
             pygame.draw.rect(self.surface, (255, 0, 0), entity.body, 2)
