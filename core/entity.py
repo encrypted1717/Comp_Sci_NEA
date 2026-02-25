@@ -17,7 +17,7 @@ class Entity(pygame.sprite.Sprite):
         self.events = None
 
         self.sprite = sprite_type
-        self.sprite_scale = 1.5
+        self.sprite_scale = 1.2
         self.frame_size = (int(128 * self.sprite_scale), int(128 * self.sprite_scale))  # temp
 
         # Fixed body size (36x72 scaled)
@@ -113,8 +113,8 @@ class Entity(pygame.sprite.Sprite):
         self.horizontal_acceleration = 2250.0 # Walking speed
         self.horizontal_friction = 11 # Depending on the situation this is also air resistance
         self.sprint_force = 1500
-        self.jump_force = 700
-        self.double_jump_force = 600
+        self.jump_force = 650
+        self.double_jump_force = 450
         self.down_force = 1500
         self.gravity = 1250
 
