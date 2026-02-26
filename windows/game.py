@@ -15,7 +15,7 @@ class Game(Window):
 
         # Logging Setup
         self.log = logging.getLogger(__name__)
-        self.log.info("Initialising Animation Manager module")
+        self.log.info("Initialising Game module")
 
         # Configs Setup
         self.config_manager = ConfigManager("assets\\game_settings\\config_user.ini")
