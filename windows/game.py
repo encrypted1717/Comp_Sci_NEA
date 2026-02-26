@@ -1,4 +1,5 @@
 import pygame
+import logging
 from core.window import Window
 from core.entity import Entity
 from core.config_manager import ConfigManager
@@ -11,118 +12,139 @@ from graphics.map_generation import MapGeneration
 class Game(Window):
     def __init__(self, display, renderer):
         super().__init__(display, renderer)
-        # Main Setup
-        self.combat_system = CombatSystem()
-        # Setup configurations
+
+        # Logging Setup
+        self.log = logging.getLogger(__name__)
+        self.log.info("Initialising Animation Manager module")
+
+        # Configs Setup
         self.config_manager = ConfigManager("assets\\game_settings\\config_user.ini")
         self.config = self.config_manager.get_config()
-        # Setup Pause frame
+
+        # Main Setup
+        self.combat_system = CombatSystem()
         self.last_frame = None
-        # Player1 setup
-        self.player1 = Entity((680, 450), "player1")
+        self.__setup_players()
+        self.__setup_groups()
+        self.__setup_map()
+
+    def __setup_players(self):
+        font = pygame.font.Font(self.fonts["GothicPixel"], 16)
+
+        self.player1 = Entity((680,  450), "player1")
         self.health1_btn = Button(
             (240, 120),
             (235, 70),
             f"Health: {str(self.player1.health)}",
-            pygame.font.Font(self.fonts["GothicPixel"], 16),
+            font,
             '#000000',
             '#ffffff',
             5,
-            border_colour = "#000000",
-            offset_y = 4
+            border_colour="#000000",
+            offset_y=4
         )
 
-        # Player2 setup
+        # TODO make health button a percentage meter that reduces as the player loses health
         self.player2 = Entity((1000, 450), "player2")
-        # TODO make health button have a percentage type meter that reduces as the player loses health... do this by making the health button invisible fill and then have another rect beneath it be a still colour and make rect reduce size by percentage of total health
         self.health2_btn = Button(
             (1560, 120),
             (235, 70),
             f"Health: {str(self.player2.health)}",
-            pygame.font.Font(self.fonts["GothicPixel"], 16),
+            font,
             '#000000',
             '#ffffff',
             5,
-            border_colour = "#000000",
-            offset_y = 4
+            border_colour="#000000",
+            offset_y=4
         )
-        # Setup groups
+
+    def __setup_groups(self):
         self.colliders = pygame.sprite.Group()
         self.entities = pygame.sprite.Group(self.player1, self.player2)
+        self.collision_manager = CollisionManager(self.entities, self.colliders)
         self.buttons.add(self.health1_btn, self.health2_btn)
 
-        self.collision_manager = CollisionManager(self.entities, self.colliders)
-
-        # Map setup
+    def __setup_map(self):
         self.map = MapGeneration()
         self.map.create_map()
         for tile in self.map.solid_tiles:
             self.colliders.add(tile)
+
+        # Killzone is a death barrier that is slightly larger than the screen
+        killzone_padding = 400
+        self.killzone = self.surface.get_rect().inflate(killzone_padding, killzone_padding)
 
     def event_handler(self, events):
         for entity in self.entities:
             entity.event_handler(events)
 
         for event in events:
-            #kb press down
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                return "pause", self.last_frame
+                return "pause", self.last_frame # Necessary for pause menu
         return None
 
     def draw(self, dt):
         self.dt = dt
-        self.surface.fill((128, 128, 128))  # White background
-        '''pygame.image.load(
-            "assets\\images\\background\\parallax_mountain_pack\\layers\\parallax-mountain-trees.png"
-        ).convert_alpha()
-        self.surface.fill()'''
-        # Draw to virtual surface
+        self.surface.fill((128, 128, 128))
+
         self.colliders.draw(self.surface)
-        self.entities.update(self.dt)
-        self.collision_manager.resolve_entity(self.dt)
+        self.entities.update(dt)
+        self.collision_manager.resolve_entity(dt)
 
-        # Debug
-        for collider in self.colliders:
-            pygame.draw.rect(collider.image, pygame.Color("white"), collider.image.get_rect(), 2)
+        self.__draw_entities()
+        self.__update_health_ui()
+        super().draw(dt)
+        self.__process_combat()
 
-        # TODO Health should update to 0 if fall off map
-        for entity in self.entities:
-            if (entity.health > 0 or entity.animation_manager.is_playing()) and self.surface.get_rect().contains(entity.body):
+        self.last_frame = self.surface.copy()
+
+    def __draw_entities(self):
+        # TODO: health should update to 0 if entity falls off map
+        for entity in list(self.entities):
+            alive = entity.health > 0 or entity.animation_manager.is_playing()
+            if alive and self.killzone.contains(entity.body):
                 self.surface.blit(entity.image, entity.img_rect.topleft)
+                self.__draw_debug(entity)
             else:
                 entity.health = 0
                 self.entities.remove(entity)
 
+    def __draw_debug(self, entity):
+        # Collision body
+        pygame.draw.rect(self.surface, (255, 0, 0), entity.body, 2)
+        # Animation-based sprite bounds/hit box
+        pygame.draw.rect(self.surface, (0, 255, 0), entity.sprite_bounds, 2)
+        # Collider outlines
+        for collider in self.colliders:
+            pygame.draw.rect(collider.image, pygame.Color("white"), collider.image.get_rect(), 2)
 
+    def __update_health_ui(self):
+        self.health1_btn.update_text(f"Health: {max(self.player1.health, 0)}") # If below 0 then health is 0
+        self.health2_btn.update_text(f"Health: {max(self.player2.health, 0)}")
 
-            # Collision body (fixed)
-            pygame.draw.rect(self.surface, (255, 0, 0), entity.body, 2)
-
-            # Sprite pixel bounds change per animation frame
-            pygame.draw.rect(self.surface, (0, 255, 0), entity.sprite_bounds, 2)
-
-        self.health1_btn.update_text(f"Health: {self.player1.health if self.player1.health > 0 else 0}")
-        self.health2_btn.update_text(f"Health: {self.player2.health if self.player2.health > 0 else 0}")
-        super().draw(self.dt)
-
+    def __process_combat(self):
         for attacker in self.entities:
-            if attacker.attacking:
-                for defender in self.entities:
-                    if attacker is defender:
-                        continue
+            if not attacker.attacking:
+                continue
+
+            for defender in self.entities:
+                if attacker is not defender:
                     self.combat_system.try_apply_hits(attacker, defender)
 
-                # Debug: draw attacker hitbox if attacking
-                attack_data = self.combat_system.attacks.get(attacker.attack_name)
-                frame_index = attacker.animation_manager.get_frame_index()
-
-                # Frame-based hitboxes
-                hitbox_data = attack_data.get("hitbox", {}).get(frame_index)
-                if not hitbox_data:
-                    continue
-
-                hitbox = self.combat_system.build_hitbox(attacker, hitbox_data)
-                pygame.draw.rect(self.surface, (0, 255, 255), hitbox, 10)
+            self.__draw_attack_hitbox(attacker)
 
         self.combat_system.update(self.entities)
-        self.last_frame = self.surface.copy()
+
+    def __draw_attack_hitbox(self, attacker):
+        """Debug: draw the active hitbox rect for an attacking entity."""
+        attack_data = self.combat_system.attacks.get(attacker.attack_name)
+        if not attack_data:
+            return
+
+        frame_index = attacker.animation_manager.get_frame_index()
+        hitbox_data = attack_data.get("hitbox", {}).get(frame_index)
+        if not hitbox_data:
+            return
+
+        hitbox = self.combat_system.build_hitbox(attacker, hitbox_data)
+        pygame.draw.rect(self.surface, (0, 255, 255), hitbox, 10)
