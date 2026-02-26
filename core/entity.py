@@ -6,6 +6,7 @@ from graphics.animation_manager import AnimationManager
 # TODO add more animations
 # TODO support different times of punches/combos using delays/elapsed time between clicks
 # TODO fix bug: sprinting anim continues after releasing movement key before removing sprint key
+# TODO Add functions for energy
 class Entity(pygame.sprite.Sprite):
     def __init__(self, start_position: tuple, sprite_type: str, health=100):
         super().__init__()
@@ -21,8 +22,9 @@ class Entity(pygame.sprite.Sprite):
         self.flip_x = False
 
         # Sprite Attributes
-        self.health = health
         self.entity_id = id(self)
+        self.health = health
+        self.energy = 0
 
         # Sprite Creation
         self.sprite_scale = 1.2
@@ -80,17 +82,13 @@ class Entity(pygame.sprite.Sprite):
             "jump": 2,
             "double_jump": 2,
             "crouch": 3,
-            "charging": 3,
+            "activate": 3,
             "punch_1": 3,
             "jump_strike": 3,
             "death": 4,
         }
         self.animation_manager.set_animation("default")
         self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
-
-    # ------------------------------------------------------------------
-    # Init helpers
-    # ------------------------------------------------------------------
 
     def _default_binds(self) -> dict:
         if self.sprite == "player1":
@@ -101,7 +99,7 @@ class Entity(pygame.sprite.Sprite):
                 "down": ("key", pygame.K_s),
                 "sprint": ("key", pygame.K_LSHIFT),
                 "punch": ("key", pygame.K_SPACE),  # ("mouse", 1) left click
-                "charging": ("key", pygame.K_e),
+                "activate": ("key", pygame.K_e),
             }
         elif self.sprite == "player2":
             return {
@@ -111,7 +109,7 @@ class Entity(pygame.sprite.Sprite):
                 "down": ("key", pygame.K_DOWN),
                 "sprint": ("key", pygame.K_RSHIFT),
                 "punch": ("key", pygame.K_RETURN),
-                "charging": ("key", pygame.K_KP0),
+                "activate": ("key", pygame.K_KP0),
             }
         return {}
 
@@ -123,7 +121,7 @@ class Entity(pygame.sprite.Sprite):
 
         load("default", address_fight + "punch_1.png", scale=self.sprite_scale, frame_indices=[0])
         load("punch_1", address_fight + "punch_1.png", scale=self.sprite_scale, cooldown=0.035)
-        load("charging", address_fight + "skill_charging.png", scale=self.sprite_scale, cooldown=0.12)  # Make this a skill activation not a charging anim
+        load("activate", address_fight + "skill_charging.png", scale=self.sprite_scale, cooldown=0.12)  # Make this a skill activation not a charging anim
         load("jump", address_move + "upward_jump.png", scale=self.sprite_scale, frame_indices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0], cooldown=0.04)
         load("double_jump", address_move + "double_jump.png", scale=self.sprite_scale, cooldown=0.04)
         load("walk", address_move + "walking.png", scale=self.sprite_scale)
@@ -178,11 +176,11 @@ class Entity(pygame.sprite.Sprite):
             "sprint": self.__is_held("sprint"),
             "jump": False,
             "punch": False,
-            "charging": False,
+            "activate": False,
         }
 
         for event in events:
-            for action in ("jump", "punch", "charging"):
+            for action in ("jump", "punch", "activate"):
                 dev, bind = self.binds[action]
                 if dev == "key" and event.type == pygame.KEYDOWN and event.key == bind:
                     state[action] = True
@@ -224,6 +222,9 @@ class Entity(pygame.sprite.Sprite):
             self.attack_name = "punch_1" if self.on_ground else "jump_strike"
             self.attack_id += 1
 
+        if inp["activate"]:
+            self.energy = 0
+
     def apply_movement(self, inp):
         if self.animation_manager.current_animation_name == "crouch":
             self.acceleration.y += self.down_force  # Extra downward force when crouching
@@ -259,8 +260,8 @@ class Entity(pygame.sprite.Sprite):
         elif inp["down"]:
             requested = "crouch"
 
-        elif inp["charging"]:
-            requested = "charging"
+        elif inp["activate"]:
+            requested = "activate"
 
         else:
             axis = (1 if inp["right"] else 0) - (1 if inp["left"] else 0)
