@@ -71,7 +71,7 @@ class Game(Window):
             self.colliders.add(tile)
 
         # Killzone is a death barrier that is slightly larger than the screen
-        killzone_padding = 400
+        killzone_padding = 1000
         self.killzone = self.surface.get_rect().inflate(killzone_padding, killzone_padding)
 
     def event_handler(self, events):
@@ -104,7 +104,7 @@ class Game(Window):
             alive = entity.health > 0 or entity.animation_manager.is_playing()
             if alive and self.killzone.contains(entity.body):
                 self.surface.blit(entity.image, entity.img_rect.topleft)
-                self.__draw_debug(entity)
+                self.__draw_debug(entity) # TODO Turned on via button
             else:
                 entity.health = 0
                 self.entities.remove(entity)
@@ -147,4 +147,4 @@ class Game(Window):
             return
 
         hitbox = self.combat_system.build_hitbox(attacker, hitbox_data)
-        pygame.draw.rect(self.surface, (0, 255, 255), hitbox, 10)
+        pygame.draw.rect(self.surface, (0, 255, 255), hitbox, 4)
