@@ -14,8 +14,8 @@ class CombatSystem:
                 "damage_attr": "punch_1_damage",
                 "active_frames": {2, 3, 4},
                 "hitbox": {
-                    2: (20, -40, 50, 40),
-                    3: (40, -40, 65, 40),
+                    2: (10, -40, 50, 40), # Frame: (X_Distance, Y_Distance, X, Y)
+                    3: (30, -40, 65, 40),
                     4: (55, -40, 75, 40)
                 }
             },
@@ -23,9 +23,8 @@ class CombatSystem:
                 "damage_attr": "jump_strike_damage",
                 "active_frames": {1, 2},
                 "hitbox": {
-                    2: (20, -40, 50, 40),
-                    3: (40, -40, 65, 40),
-                    4: (55, -40, 75, 40)
+                    1: (10, -10, 50, 35),
+                    2: (20, -10, 65, 35)
                 }
             }
         }
