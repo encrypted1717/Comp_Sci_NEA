@@ -25,7 +25,7 @@ class Window:
     def draw(self, dt):
         self.dt = dt
         mouse_pos = self.renderer.get_virtual_mouse_pos()
-        self.buttons.update(mouse_pos)
+        self.buttons.update(mouse_pos, dt)
         self.buttons.draw(self.surface)  # keep loading buttons
 
     # Update all variables with new display

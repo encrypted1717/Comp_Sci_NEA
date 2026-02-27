@@ -8,10 +8,12 @@ from core.config_manager import ConfigManager
 class SettingsMenu(Window):
     def __init__(self, display, renderer):
         super().__init__(display, renderer)
-        #get configs for game
+
+        # Setup Configs
         self.config_manager = ConfigManager("assets\\game_settings\\config_user.ini")
         self.config = self.config_manager.get_config()
         self.changed = False # Whether any settings have been changed
+
         # Resolution setting setup
         self.resolutions = pygame.display.list_modes()
         # TODO could try first getting it from ini file

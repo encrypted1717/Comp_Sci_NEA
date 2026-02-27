@@ -1,5 +1,6 @@
 from core.window import Window
 from windows.game import Game
+from windows.login import LoginMenu
 from windows.main_menu import MainMenu
 from windows.controls_menu import ControlsMenu
 from windows.pause_menu import PauseMenu
@@ -13,9 +14,9 @@ class WindowManager:
         self.display = display
         self.renderer = renderer
         # Top of stack is the active window
-        self.stack = ["main_menu"] # Defaults to this
+        self.stack = ["login"] # Defaults to this
         # Windows that are preloaded
-        self.windows: dict[str, Window] = {"main_menu" : MainMenu(self.display, self.renderer)} # the type hint here is to fix a slight warning. The type hint now states that each dict contains a key of str and a value of a Window
+        self.windows: dict[str, Window] = {"login": LoginMenu(self.display,self.renderer)} # the type hint here is to fix a slight warning. The type hint now states that each dict contains a key of str and a value of a Window
         # Store last pause background frame
         self.pause_background = None
 
@@ -35,6 +36,8 @@ class WindowManager:
                 self.windows[state] = SettingsMenu(self.display, self.renderer)
             elif state == "pause":
                 self.windows[state] = PauseMenu(self.display, self.renderer, self.pause_background)
+            elif state == "login":
+                self.windows[state] = LoginMenu(self.display, self.renderer)
             else:
                 self.windows[state] = ExitMenu(self.display, self.renderer) # TODO check if this line can be improved as state is assumed to be exit
 
