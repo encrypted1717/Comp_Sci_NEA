@@ -7,8 +7,9 @@ from core.button import Button
 from graphics.parallax_background import Background
 
 
+# TODO only player 1 ini files are created therefore only their profiles are retrieved
 class LoginMenu(Window):
-    def __init__(self, display, renderer, player):
+    def __init__(self, display, renderer, player, logged_in_player=None):
         super().__init__(display, renderer)
 
         # Setup Logging
@@ -17,6 +18,7 @@ class LoginMenu(Window):
 
         # Setup Main
         self.player = player  # Tracks whether the next login is for player 1 or 2
+        self.logged_in_player = logged_in_player  # (user_id, username) of already logged in player, or None
 
         # Setup parallax background
         self.bg = Background()
@@ -103,6 +105,18 @@ class LoginMenu(Window):
             "#FF3131", "#ffffff", border=3, border_colour="#000000",
             offset_y=4
         )
+        self.__duplicate_error_label = Button(
+            (1500, 605), (400, 245),
+            "ERROR\nThis account is already\nlogged in as Player 1", font1,
+            "#FF3131", "#ffffff", border=3, border_colour="#000000",
+            offset_y=4
+        )
+        self.__username_taken_error_label = Button(
+            (1500, 350), (400, 245),
+            "USERNAME ERROR\nThis username is already\ntaken", font1,
+            "#FF3131", "#ffffff", border=3, border_colour="#000000",
+            offset_y=4
+        )
         self.buttons.add(
             self.__player_label, self.__login_btn, self.__register_btn,
             self.__username_txt, self.__password_txt, self.__peak_btn
@@ -128,7 +142,33 @@ class LoginMenu(Window):
                 elif action == "register":
                     username, password = self.__get_credentials()
                     check = self.__check_credentials(username, password)
-                    if check[0] and check[1]:
+                    username_valid, password_valid = check[0], check[1]
+
+                    # Clear all errors first then show only relevant ones
+                    self.buttons.remove(
+                        self.__reg_user_error_label, self.__reg_pass_error_label,
+                        self.__login_error_label, self.__duplicate_error_label,
+                        self.__username_taken_error_label
+                    )
+
+                    if not username_valid:
+                        self.buttons.add(self.__reg_user_error_label)
+
+                    if not password_valid:
+                        self.buttons.add(self.__reg_pass_error_label)
+
+                    if username_valid:
+                        # Only check if taken once the username format is valid
+                        self.cursor.execute(
+                            "SELECT userID FROM login_credentials WHERE username = ?",
+                            (username,)
+                        )
+                        if self.cursor.fetchone():
+                            self.log.warning("Registration failed: username already taken: %s", username)
+                            self.buttons.add(self.__username_taken_error_label)
+                            return None
+
+                    if username_valid and password_valid:
                         password = password.encode("utf-8")
                         hashed = bcrypt.hashpw(password, bcrypt.gensalt())
                         self.cursor.execute(
@@ -136,20 +176,14 @@ class LoginMenu(Window):
                             (username, hashed)
                         )
                         self.con.commit()
-                        # Fetch the new user's ID so player data is available immediately
                         user_id = self.cursor.lastrowid
+                        # Block if this account is already logged in as the other player
+                        if self.logged_in_player and self.logged_in_player[0] == user_id:
+                            self.buttons.add(self.__duplicate_error_label)
+                            return None
                         self.log.info("Registered new user: %s (id=%s)", username, user_id)
                         self.__clear_inputs()
                         return "main", (user_id, username)
-                    elif not check[0] and check[1]: # Username error
-                        self.buttons.remove(self.__reg_pass_error_label, self.__login_error_label)
-                        self.buttons.add(self.__reg_user_error_label)
-                    elif check[0] and not check[1]:
-                        self.buttons.remove(self.__reg_user_error_label, self.__login_error_label)
-                        self.buttons.add(self.__reg_pass_error_label)
-                    else:
-                        self.buttons.remove(self.__login_error_label)
-                        self.buttons.add(self.__reg_user_error_label, self.__reg_pass_error_label)
 
                 elif action == "login":
                     username, password = self.__get_credentials()
@@ -160,6 +194,12 @@ class LoginMenu(Window):
                     )
                     row = self.cursor.fetchone()
                     if row and bcrypt.checkpw(password, row[1]):
+                        # Block if this account is already logged in as the other player
+                        if self.logged_in_player and self.logged_in_player[0] == row[0]:
+                            self.log.warning("Duplicate login attempt: %s already logged in as Player 1", username)
+                            self.buttons.remove(self.__reg_user_error_label, self.__reg_pass_error_label, self.__login_error_label)
+                            self.buttons.add(self.__duplicate_error_label)
+                            return None
                         self.log.info("User logged in: %s (id=%s)", username, row[0])
                         self.__clear_inputs()
                         return "main", (row[0], username)
@@ -186,10 +226,10 @@ class LoginMenu(Window):
         special = "!@#$%^&*()-_+= "
         min_user_length = 3
         min_pass_length = 6
-        if username and password:
-            print(type(username), type(password))
+        if username:
             if len(username) >= min_user_length:
                 check[0] = True
+        if password:
             if len(password) >= min_pass_length:
                 for char in password: #KingArt12!
                     if char.isupper():

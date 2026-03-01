@@ -128,7 +128,23 @@ class MainMenu(Window):
             hover_border_colour="#000000",
             fill_on_hover=True
         )
-
+        self.__leaderboard_btn = Button(
+            (self.center_x, 590),
+            (menu_width, height),
+            "Leaderboard",
+            menu_font,
+            "#ffffff",
+            "#000000",
+            5,
+            border_colour="#ffffff",
+            fill=False,
+            offset_y=4,
+            action="leaderboard",
+            hover_text_colour="#000000",
+            hover_rect_colour="#ffffff",
+            hover_border_colour="#000000",
+            fill_on_hover=True
+        )
         self.__controls_btn = Button(
             (self.center_x, 590),
             (menu_width, height),

@@ -9,35 +9,29 @@ from core.config_manager import ConfigManager
 from graphics.virtual_renderer import VirtualRenderer
 
 def get_settings(path, logger):
+    import shutil
+    default_path = "assets\\game_settings\\config_default.ini"
     config_manager = ConfigManager(path)
+
+    if not config_manager.file_read:
+        logger.warning("Could not open config file at: %s — copying from default", path)
+        shutil.copy(default_path, path)
+        config_manager = ConfigManager(path)  # Reload now the file exists
+
     config = config_manager.get_config()
     desktop_w, desktop_h = pygame.display.get_desktop_sizes()[0]
 
-    # Check if user settings are already created
-    if config_manager.file_read:
-        width = config.getint("Graphics", "Screen_Width")
-        height = config.getint("Graphics", "Screen_Height")
-        display_mode = config.get("Window", "Display_Mode")
-        fps = config.get("Window", "FPS")
-    else:
-        logger.warning("Could not open config file in path: %s", path)
+    raw_width = config.get("Graphics", "Screen_Width")
+    raw_height = config.get("Graphics", "Screen_Height")
+    width = int(raw_width) if raw_width != "Default" else desktop_w
+    height = int(raw_height) if raw_height != "Default" else desktop_h
 
-        default_settings_path = "assets\\game_settings\\config_default.ini"
-        default_config_manager = ConfigManager(default_settings_path)
-        default_config = default_config_manager.get_config()
+    display_mode = config.get("Window", "Display_Mode")
+    fps = config.get("Window", "FPS")
 
-        raw_width = default_config.get("Graphics", "Screen_Width")
-        raw_height = default_config.get("Graphics", "Screen_Height")
-        width = int(raw_width) if raw_width != "Default" else desktop_w
-        height = int(raw_height) if raw_height != "Default" else desktop_h
-
-        display_mode = default_config.get("Window", "Display_Mode")
-        fps = default_config.get("Window", "FPS")
-
-        config_manager.set_values({
-            "Graphics": {"Screen_Width": width, "Screen_Height": height},
-            "Window": {"Display_Mode": display_mode, "FPS": fps}
-        })
+    # If default values were used, write the resolved resolution back
+    if raw_width == "Default" or raw_height == "Default":
+        config_manager.set_values({"Graphics": {"Screen_Width": width, "Screen_Height": height}})
 
     framerate = 0 if fps.lower() == "unlimited" else int(fps)
     return width, height, display_mode, framerate

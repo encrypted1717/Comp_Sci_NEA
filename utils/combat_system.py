@@ -62,7 +62,13 @@ class CombatSystem:
             return
 
         if self.build_hitbox(attacker, hitbox_data).colliderect(defender.sprite_bounds):
-            defender.health -= getattr(attacker, attack_data["damage_attr"], 0)
+            if defender.is_blocking and defender.blocks_remaining > 0:
+                # Block absorbs the hit — consume one block and reset the regen timer
+                defender.blocks_remaining -= 1
+                defender.block_regen_timer = 0.0
+            else:
+                # Either not blocking, or block is broken — take full damage
+                defender.health -= getattr(attacker, attack_data["damage_attr"], 0)
             self.__hit_registry.add(hit_key)
 
     def build_hitbox(self, attacker, hitbox_data):

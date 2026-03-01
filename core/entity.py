@@ -52,6 +52,10 @@ class Entity(pygame.sprite.Sprite):
         self.jumps_remaining = 2
         self.jump_anim = None
         self.air_time = 0.0
+        self.can_activate = False
+        self.energy_timer = 0.0
+        self.energy_consumption = 20
+        self.energy_delay = 2 # seconds
         self.double_jump_delay = 0.01
 
         # Combat
@@ -61,10 +65,26 @@ class Entity(pygame.sprite.Sprite):
         self.attack_name = None
         self.attack_id = 0
         self.combos = 0
+        self.max_blocks = 2
+        self.blocks_remaining = self.max_blocks
+        self.is_blocking = False
+        self.block_regen_timer = 0.0
+        self.block_regen_delay = 5.0  # seconds after last blocked hit before blocks reset
 
         # Input
         self.keys = None
-        self.binds = self._default_binds()
+        # Input
+        self.keys = None
+        self.binds = {
+            "left": ("none", None),
+            "right": ("none", None),
+            "jump": ("none", None),
+            "down": ("none", None),
+            "sprint": ("none", None),
+            "punch": ("none", None),
+            "block": ("none", None),
+            "activate": ("none", None),
+        }
 
         # Animations
         # TODO update system so the scale can be updated and doesnt need to be stated at every load of animation
@@ -82,6 +102,7 @@ class Entity(pygame.sprite.Sprite):
             "stop_sprint": 1,
             "jump": 1,
             "double_jump": 1,
+            "block": 2,
             "crouch": 2,
             "activate": 2,
             "punch_1": 2,
@@ -91,46 +112,24 @@ class Entity(pygame.sprite.Sprite):
         self.animation_manager.set_animation("default")
         self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
 
-    def _default_binds(self) -> dict:
-        if self.sprite == "player1":
-            return {
-                "left": ("key", pygame.K_a),
-                "right": ("key", pygame.K_d),
-                "jump": ("key", pygame.K_w),
-                "down": ("key", pygame.K_s),
-                "sprint": ("key", pygame.K_LSHIFT),
-                "punch": ("key", pygame.K_SPACE),  # ("mouse", 1) left click
-                "activate": ("key", pygame.K_e),
-            }
-        elif self.sprite == "player2":
-            return {
-                "left": ("key", pygame.K_LEFT),
-                "right": ("key", pygame.K_RIGHT),
-                "jump": ("key", pygame.K_UP),
-                "down": ("key", pygame.K_DOWN),
-                "sprint": ("key", pygame.K_RSHIFT),
-                "punch": ("key", pygame.K_RETURN),
-                "activate": ("key", pygame.K_KP0),
-            }
-        return {}
-
     def _load_animations(self) -> None:
         load = self.animation_manager.load_animation
-        address_fight = "assets\\characters\\default\\fighting\\Animations\\"
-        address_move = "assets\\characters\\default\\movement\\Animations\\"
-        address_other = "assets\\characters\\default\\other\\Animations\\"
+        path_fight = "assets\\characters\\default\\fighting\\animations\\"
+        path_move = "assets\\characters\\default\\movement\\animations\\"
+        path_other = "assets\\characters\\default\\other\\animations\\"
 
-        load("default", address_fight + "punch_1.png", scale=self.sprite_scale, frame_indices=[0])
-        load("punch_1", address_fight + "punch_1.png", scale=self.sprite_scale, cooldown=0.035)
-        load("activate", address_fight + "skill_charging.png", scale=self.sprite_scale, cooldown=0.12)  # Make this a skill activation not a charging anim
-        load("jump", address_move + "upward_jump.png", scale=self.sprite_scale, frame_indices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0], cooldown=0.04)
-        load("double_jump", address_move + "double_jump.png", scale=self.sprite_scale, cooldown=0.04)
-        load("walk", address_move + "walking.png", scale=self.sprite_scale)
-        load("sprint", address_move + "running.png", scale=self.sprite_scale, cooldown=0.08)
-        load("stop_sprint", address_move + "stop_running.png", scale=self.sprite_scale)
-        load("crouch", address_move + "crouch.png", scale=self.sprite_scale, cooldown=0.035)
-        load("jump_strike", address_move + "jump_strike.png", scale=self.sprite_scale)
-        load("death", address_other + "death.png", scale=self.sprite_scale)
+        load("default", path_fight + "punch_1.png", scale=self.sprite_scale, frame_indices=[0])
+        load("punch_1", path_fight + "punch_1.png", scale=self.sprite_scale, cooldown=0.035)
+        load("block", path_fight + "block.png", scale=self.sprite_scale, cooldown=0.15)
+        load("activate", path_fight + "skill_charging.png", scale=self.sprite_scale, cooldown=0.12)  # Make this a skill activation not a charging anim
+        load("jump", path_move + "upward_jump.png", scale=self.sprite_scale, frame_indices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0], cooldown=0.04)
+        load("double_jump", path_move + "double_jump.png", scale=self.sprite_scale, cooldown=0.04)
+        load("walk", path_move + "walking.png", scale=self.sprite_scale)
+        load("sprint", path_move + "running.png", scale=self.sprite_scale, cooldown=0.08)
+        load("stop_sprint", path_move + "stop_running.png", scale=self.sprite_scale)
+        load("crouch", path_move + "crouch.png", scale=self.sprite_scale, cooldown=0.035)
+        load("jump_strike", path_move + "jump_strike.png", scale=self.sprite_scale)
+        load("death", path_other + "death.png", scale=self.sprite_scale)
 
     def update(self, dt):
         self.dt = dt
@@ -150,6 +149,19 @@ class Entity(pygame.sprite.Sprite):
         self.animation_manager.update(dt)
         self.image = pygame.transform.flip(self.animation_manager.get_frame(), self.flip_x, False)
         self.sync_img_rect_to_body()
+
+        # Update Attributes
+        self.energy_timer += dt
+        if self.energy_timer >= self.energy_delay:
+            self.energy = min(self.energy + 10, 100)  # cap at 100
+            self.energy_timer = 0.0
+
+        # Block regen — reset blocks after not being hit for block_regen_delay seconds
+        if self.blocks_remaining < self.max_blocks:
+            self.block_regen_timer += dt
+            if self.block_regen_timer >= self.block_regen_delay:
+                self.blocks_remaining = self.max_blocks
+                self.block_regen_timer = 0.0
 
         # Clear attack state once animation finishes
         if self.attacking and not self.animation_manager.is_playing():
@@ -175,9 +187,10 @@ class Entity(pygame.sprite.Sprite):
             "right": self.__is_held("right"),
             "down": self.__is_held("down"),
             "sprint": self.__is_held("sprint"),
+            "block": self.__is_held("block"),
             "jump": False,
             "punch": False,
-            "activate": False,
+            "activate": False, # activates set ability
         }
 
         for event in events:
@@ -201,7 +214,7 @@ class Entity(pygame.sprite.Sprite):
                 self.__log.warning("Bind uses mouse button %s, but only %s buttons are tracked", code, len(buttons))
                 return False
             return buttons[idx]
-        return False
+        return False # for unbinded keys
 
     def apply_actions(self, inp):
         """
@@ -226,7 +239,20 @@ class Entity(pygame.sprite.Sprite):
             self.attack_id += 1
 
         if inp["activate"]:
-            self.energy = 0
+            if self.energy >= self.energy_consumption and self.animation_manager.get_name() != "activate":
+                self.can_activate = True
+                self.energy -= self.energy_consumption
+            else:
+                self.can_activate = False
+            if self.can_activate:
+                pass # run ability
+
+        if inp["block"]:
+            if self.blocks_remaining > 0:
+                self.is_blocking = True
+            else:
+                self.is_blocking = False
+
 
     def apply_movement(self, inp):
         if self.animation_manager.current_animation_name == "crouch":
@@ -259,7 +285,11 @@ class Entity(pygame.sprite.Sprite):
         elif inp["down"]:
             requested = "crouch"
 
-        elif inp["activate"]:
+        elif self.is_blocking:
+            requested = "block"
+
+        elif self.can_activate:
+            self.can_activate = False
             requested = "activate"
 
         else:

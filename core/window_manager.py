@@ -117,6 +117,19 @@ class WindowManager:
             self.__reset_to(action)
             return None
 
+        if action == "logout":
+            # Clear all player state and return to a fresh login screen
+            self.player1 = None
+            self.player2 = None
+            self.login_player = 1
+            self.__reset_to("login")
+            return None
+
+        if action == "reload_controls":
+            if "game" in self.windows:
+                self.windows["game"].reload_controls()
+            return None
+
         if action == "update_display":
             return action
 
