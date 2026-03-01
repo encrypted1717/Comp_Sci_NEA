@@ -66,6 +66,13 @@ class Button(pygame.sprite.Sprite):
         else:
             self.text = text
 
+        # Key repeat state
+        self._held_key = None  # which key is currently held
+        self._held_char = ""  # the character for that key (empty for backspace)
+        self._hold_timer = 0.0
+        self._hold_delay = 0.4  # seconds before repeat starts
+        self._hold_interval = 0.05  # seconds between each repeat
+
         self.__render()
 
     def __render(self):
@@ -119,11 +126,20 @@ class Button(pygame.sprite.Sprite):
 
     def update(self, mouse_pos=None, dt=0):
         if self.typing and self.active:
+            # Cursor blink
             self.cursor_timer += dt
             if self.cursor_timer >= self.cursor_interval:
                 self.cursor_visible = not self.cursor_visible
                 self.cursor_timer = 0
                 self.__render()
+
+            # Key repeat
+            if self._held_key is not None:
+                self._hold_timer += dt
+                if self._hold_timer >= self._hold_delay:
+                    # Subtract delay so repeat fires at interval cadence, not delay cadence
+                    self._hold_timer -= self._hold_interval
+                    self.__apply_key(self._held_key, self._held_char)
         else:
             is_hovering_now = self.rect.collidepoint(mouse_pos) if mouse_pos else False
             if is_hovering_now != self.is_hovering:
@@ -142,14 +158,24 @@ class Button(pygame.sprite.Sprite):
 
             if self.active and event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
-                    self.text = self.text[:-1]
-                elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):  # if they click enter
-                    return self.action  # Submit action
+                    self.__apply_key(event.key, "")
+                    self._held_key = event.key
+                    self._held_char = ""
+                    self._hold_timer = 0.0
+                elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                    return self.action
                 elif event.key == pygame.K_TAB:
-                    pass  # Go to next field
+                    pass
                 elif len(self.text) < self.max_length:
-                    self.text += event.unicode
-                self.__render()
+                    self.__apply_key(event.key, event.unicode)
+                    self._held_key = event.key
+                    self._held_char = event.unicode
+                    self._hold_timer = 0.0
+
+            if event.type == pygame.KEYUP:
+                if event.key == self._held_key:
+                    self._held_key = None  # Stop repeating when key is released
+
         elif self.action is not None:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.rect.collidepoint(event.pos):
@@ -172,3 +198,15 @@ class Button(pygame.sprite.Sprite):
         if self.typing:
             self.text = ""
             self.__render()
+
+    def toggle_mask(self):
+        if self.typing:
+            self.mask = not self.mask
+            self.__render()
+
+    def __apply_key(self, key, char):
+        if key == pygame.K_BACKSPACE:
+            self.text = self.text[:-1]
+        elif len(self.text) < self.max_length and char:
+            self.text += char
+        self.__render()

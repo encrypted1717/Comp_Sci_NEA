@@ -52,9 +52,10 @@ class CollisionManager:
             # Snap feet to platform top
             entity.position.y = platform_rect.top
             entity.velocity.y = 0
+            if not entity.on_ground:  # Only refill jumps on landing, not every frame
+                entity.jumps_remaining = 2
+                entity.air_time = 0.0
             entity.on_ground = True
-            entity.jumps_remaining = 2
-            entity.air_time = 0.0
 
             entity.body.midbottom = (int(entity.position.x), int(entity.position.y))
             entity.rect = entity.body
@@ -125,9 +126,10 @@ class CollisionManager:
             # top lands on bottom
             top_player.position.y -= overlap
             top_player.velocity.y = 0
+            if not top_player.on_ground:  # Only refill jumps on landing
+                top_player.jumps_remaining = 2
+                top_player.air_time = 0.0
             top_player.on_ground = True
-            top_player.jumps_remaining = 2
-            top_player.air_time = 0.0
             # Move with bottom
             top_player.velocity.y = bottom_player.velocity.y
 

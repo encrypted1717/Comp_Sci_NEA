@@ -1,4 +1,5 @@
 import pygame
+import logging
 from core.window import Window
 from core.button import Button
 from core.config_manager import ConfigManager
@@ -6,8 +7,12 @@ from core.config_manager import ConfigManager
 
 #TODO Introduce more settings
 class SettingsMenu(Window):
-    def __init__(self, display, renderer):
+    def __init__(self, display, renderer, user):
         super().__init__(display, renderer)
+
+        # Logging Setup
+        self.log = logging.getLogger(__name__)
+        self.log.info("Initialising Settings Menu module")
 
         # Setup Configs
         self.config_manager = ConfigManager("assets\\game_settings\\config_user.ini")
@@ -206,7 +211,7 @@ class SettingsMenu(Window):
 
                     self.buttons.remove(self.__apply_btn)
                     self.changed = False
-                    return "apply_display"
+                    return "update_display"
 
                 elif action:
                     return action

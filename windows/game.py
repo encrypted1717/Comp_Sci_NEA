@@ -10,7 +10,7 @@ from graphics.map_generation import MapGeneration
 
 
 class Game(Window):
-    def __init__(self, display, renderer):
+    def __init__(self, display, renderer, player1, player2):
         super().__init__(display, renderer)
 
         # Logging Setup

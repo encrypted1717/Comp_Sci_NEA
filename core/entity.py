@@ -50,6 +50,7 @@ class Entity(pygame.sprite.Sprite):
         self.gravity = 1250
         self.on_ground = False
         self.jumps_remaining = 2
+        self.jump_anim = None
         self.air_time = 0.0
         self.double_jump_delay = 0.01
 
@@ -77,15 +78,15 @@ class Entity(pygame.sprite.Sprite):
         self.animation_priority = {
             "default": 0,
             "walk": 0,
-            "sprint": 1,
-            "stop_sprint": 2,
-            "jump": 2,
-            "double_jump": 2,
-            "crouch": 3,
-            "activate": 3,
-            "punch_1": 3,
-            "jump_strike": 3,
-            "death": 4,
+            "sprint": 0,
+            "stop_sprint": 1,
+            "jump": 1,
+            "double_jump": 1,
+            "crouch": 2,
+            "activate": 2,
+            "punch_1": 2,
+            "jump_strike": 2,
+            "death": 3,
         }
         self.animation_manager.set_animation("default")
         self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
@@ -125,7 +126,7 @@ class Entity(pygame.sprite.Sprite):
         load("jump", address_move + "upward_jump.png", scale=self.sprite_scale, frame_indices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0], cooldown=0.04)
         load("double_jump", address_move + "double_jump.png", scale=self.sprite_scale, cooldown=0.04)
         load("walk", address_move + "walking.png", scale=self.sprite_scale)
-        load("sprint", address_move + "running.png", scale=self.sprite_scale)
+        load("sprint", address_move + "running.png", scale=self.sprite_scale, cooldown=0.08)
         load("stop_sprint", address_move + "stop_running.png", scale=self.sprite_scale)
         load("crouch", address_move + "crouch.png", scale=self.sprite_scale, cooldown=0.035)
         load("jump_strike", address_move + "jump_strike.png", scale=self.sprite_scale)
@@ -207,15 +208,17 @@ class Entity(pygame.sprite.Sprite):
         Handles one-shot actions: jump and attack.
         Later: dash, interact, swap weapon, parry, etc.
         """
+        self.jump_anim = None
         if inp["jump"]:
             if self.jumps_remaining == 2:
                 self.velocity.y = -self.jump_force
                 self.jumps_remaining -= 1
                 self.on_ground = False
-            elif self.jumps_remaining == 1 and self.air_time >= self.double_jump_delay:
+                self.jump_anim = "jump"
+            elif self.jumps_remaining == 1 and self.air_time >= self.double_jump_delay and not self.on_ground:
                 self.velocity.y = -self.double_jump_force
                 self.jumps_remaining -= 1
-                self.on_ground = False
+                self.jump_anim = "double_jump"
 
         if inp["punch"]:
             self.attacking = True
@@ -245,13 +248,9 @@ class Entity(pygame.sprite.Sprite):
         restart = False
 
         # apply_actions() already decremented jumps_remaining each check is 1 less
-        if inp["jump"]:
-            if self.jumps_remaining == 1:
-                requested = "jump"
-                restart = True
-            elif self.jumps_remaining == 0:
-                requested = "double_jump"
-                restart = True
+        if self.jump_anim:
+            requested = self.jump_anim
+            restart = True
 
         elif inp["punch"]:
             requested = self.attack_name
