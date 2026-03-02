@@ -31,8 +31,10 @@ class VictoryMenu(Window):
                         e.g. ("Player 1", "Alice").
         """
         super().__init__(display, renderer)
+        # Main setup
         self._winner = winner  # Stored as (player_label, username) set by the game on win condition
-        self._create_buttons()
+        # Create buttons
+        self.__create_buttons()
         self.buttons.add(
             self.victory_label,
             self.win_label,
@@ -54,7 +56,7 @@ class VictoryMenu(Window):
         self.surface.fill((255, 255, 255))
         super().draw(dt)
 
-    def _create_buttons(self) -> None:
+    def __create_buttons(self) -> None:
         """Create and store all labels and buttons displayed on the victory screen."""
         player_label, username = self._winner
 

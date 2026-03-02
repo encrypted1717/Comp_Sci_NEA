@@ -1,16 +1,35 @@
+"""
+    Entry point for the game.
+
+    This module initialises pygame, sets up the display and renderer, and runs
+    the main game loop. It handles event processing, delta time, window management,
+    and applies per-user display settings once player 1 has logged in.
+"""
+
 import pygame
-import time
 import logging
-
-from pygame.constants import FULLSCREEN
-
 from core.window_manager import WindowManager
 from core.config_manager import ConfigManager
 from graphics.virtual_renderer import VirtualRenderer
 
-def get_settings(path, logger):
+
+def get_settings(path: str, logger: logging.Logger) -> tuple[int, int, str, int, bool]:
+    """
+        Load display settings from a user config file.
+
+        If the config file does not exist, a fresh copy is made from the default
+        config before loading. If the stored resolution is "Default", the current
+        desktop resolution is substituted and written back to the file.
+
+        Args:
+            path: path to the user's config .ini file.
+            logger: logger instance for warnings and info.
+
+        Returns:
+            A tuple of (width, height, display_mode, framerate, vsync).
+    """
     import shutil
-    default_path = "assets\\game_settings\\config_default.ini"
+    default_path   = "assets\\game_settings\\config_default.ini"
     config_manager = ConfigManager(path)
 
     if not config_manager.file_read:
@@ -21,22 +40,40 @@ def get_settings(path, logger):
     config = config_manager.get_config()
     desktop_w, desktop_h = pygame.display.get_desktop_sizes()[0]
 
-    raw_width = config.get("Graphics", "Screen_Width")
+    raw_width  = config.get("Graphics", "Screen_Width")
     raw_height = config.get("Graphics", "Screen_Height")
-    width = int(raw_width) if raw_width != "Default" else desktop_w
+    width  = int(raw_width)  if raw_width  != "Default" else desktop_w  # Fall back to desktop size if unset
     height = int(raw_height) if raw_height != "Default" else desktop_h
 
     display_mode = config.get("Window", "Display_Mode")
-    fps = config.get("Window", "FPS")
+    fps          = config.get("Window", "FPS")
 
-    # If default values were used, write the resolved resolution back
+    # Write the resolved resolution back so "Default" is only used once
     if raw_width == "Default" or raw_height == "Default":
         config_manager.set_values({"Graphics": {"Screen_Width": width, "Screen_Height": height}})
 
-    framerate = 0 if fps.lower() == "unlimited" else int(fps)
-    return width, height, display_mode, framerate
+    framerate = 0 if fps.lower() == "unlimited" else int(fps)  # 0 = uncapped in pygame clock
+    vsync     = config.get("Window", "Vsync", fallback="Off").strip().lower() == "on"
+    return width, height, display_mode, framerate, vsync
 
-def get_display(width, height, mode, logger):
+
+def get_display(width: int, height: int, mode: str, logger: logging.Logger, vsync: bool = False) -> tuple[pygame.Surface, int]:
+    """
+        Create and return a pygame display surface with the given settings.
+
+        Args:
+            width: window width in pixels.
+            height: window height in pixels.
+            mode: display mode string — "Windowed", "Borderless_Windowed", or "Fullscreen".
+            logger: logger instance for info and errors.
+            vsync: whether to enable vertical sync.
+
+        Returns:
+            A tuple of (display surface, pygame flags integer).
+
+        Raises:
+            ValueError: if an unrecognised display mode is provided.
+    """
     if mode == "Windowed":
         flags = pygame.RESIZABLE
     elif mode == "Borderless_Windowed":
@@ -48,12 +85,38 @@ def get_display(width, height, mode, logger):
         raise ValueError(f"Unknown mode: {mode}")
 
     pygame.display.set_caption("Game")
-    display = pygame.display.set_mode((width, height), flags)
-    logger.info("Display setup: %s x %s  mode=%s", width, height, mode)
+    display = pygame.display.set_mode((width, height), flags, vsync=1 if vsync else 0)
+    logger.info("Display setup: %s x %s  mode=%s  vsync=%s", width, height, mode, vsync)
     return display, flags
 
-def main():
-    # Setup Logging
+
+def apply_user_settings(user_id: int, renderer: VirtualRenderer, manager: WindowManager, log: logging.Logger) -> tuple[pygame.Surface, int, int, str]:
+    """
+        Load and apply player 1's saved display settings after login.
+
+        Reads the user's config file, recreates the display surface, and
+        notifies both the renderer and window manager of the change.
+
+        Args:
+            user_id: the logged-in player 1's database ID, used to locate their config file.
+            renderer: the active VirtualRenderer instance.
+            manager: the active WindowManager instance.
+            log: logger instance for info messages.
+
+        Returns:
+            A tuple of (display surface, flags, framerate, user_settings_path).
+    """
+    path = f"assets\\game_settings\\users\\config_{user_id}.ini"
+    w, h, mode, framerate, vsync = get_settings(path, log)
+    display, flags = get_display(w, h, mode, log, vsync)
+    renderer.set_window_surface(display)
+    manager.update_display(display)
+    return display, flags, framerate, path
+
+
+def main() -> None:
+    """Initialise the game and run the main loop until the player quits."""
+    # Setup logging — all modules share this root config
     logging.basicConfig(
         level=logging.DEBUG,
         filename='utils\\debug.log',
@@ -63,71 +126,49 @@ def main():
     log = logging.getLogger(__name__)
     log.info("Starting game")
 
-    # Setup Pygame
     pygame.init()
     clock = pygame.time.Clock()
-    prev_time = time.time() # Calc elapsed time
 
-    # Pre-login display (safe default, no user config yet)
-    framerate = 60
-    user_settings_path = None # Set once player logs in
-    display, flags = get_display(1280, 720, "Windowed", log)
+    # Safe default display before any user config is loaded — applied once player 1 logs in
+    framerate          = 60
+    user_settings_path = None  # Remains None until player 1 completes login
+    display, flags     = get_display(1280, 720, "Windowed", log, vsync=False)
 
     renderer = VirtualRenderer(display, design_size=(1920, 1080))
-    manager = WindowManager(display, renderer) # WindowManager handles everything to do with the windows (i.e. switching/creating/deleting windows)
+    manager  = WindowManager(display, renderer)
 
     running = True
     while running:
-        clock.tick(framerate)  # Sets tick speed/fps
+        dt = clock.tick(framerate) / 1000.0  # ms → seconds for physics and animation
 
-        # Calc delta time in milliseconds
-        now = time.time()
-        dt = now - prev_time
-        prev_time = now
-
-        # Get events for window before mapping such as resizing/quit
         raw_events = pygame.event.get()
         for event in raw_events:
             if event.type == pygame.QUIT:
                 running = False
 
-            if event.type == pygame.VIDEORESIZE:
-                display = pygame.display.set_mode((event.w, event.h), flags)
-                renderer.set_window_surface(display)
-                manager.update_display(display)
-                # Only persist size if player 1 is already logged in
-                if user_settings_path:
-                    cfg = ConfigManager(user_settings_path)
-                    cfg.set_values({"Graphics": {"Screen_Width": event.w, "Screen_Height": event.h}})
+            # Persist the new window size to the user's config when the window is resized
+            if event.type == pygame.WINDOWRESIZED and user_settings_path:
+                cfg = ConfigManager(user_settings_path)
+                cfg.set_values({"Graphics": {"Screen_Width": event.x, "Screen_Height": event.y}})
 
-        # Map events into virtual coordinates for game/UI
-        events = []
-        for e in raw_events:
-            mapped = renderer.map_event_to_virtual(e)
-            if mapped is not None:
-                events.append(mapped)
+        # Remap mouse events from window pixels into virtual coordinates, discarding any in letterbox bars
+        events = [e for e in (renderer.map_event_to_virtual(e) for e in raw_events) if e is not None]
 
-        # Start a virtual frame
         renderer.clear_frame()
 
-        # Update window and apply settings changes // once player 1 logs in, apply their display settings
+        # Update the active window; on first login swap in player 1's display settings
         state = manager.update_window(events)
         if state and state[0] == "update_display":
-            user_id = state[1]
-            user_settings_path = f"assets\\game_settings\\users\\config_{user_id}.ini"
-            display_width, display_height, display_mode, framerate = get_settings(user_settings_path, log)
-            log.info("Settings have been reloaded")
-
-            display, flags = get_display(display_width, display_height, display_mode, log)
-            renderer.set_window_surface(display)
-            manager.update_display(display)
+            display, flags, framerate, user_settings_path = apply_user_settings(state[1], renderer, manager, log)
+            log.info("Settings applied for user_id=%s", state[1])
 
         manager.draw(dt)
 
-        # Present scaled and letterboxed output
         renderer.draw()
         pygame.display.flip()
+
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()

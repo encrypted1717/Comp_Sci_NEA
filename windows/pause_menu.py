@@ -32,8 +32,11 @@ class PauseMenu(Window):
                 background_surface: a snapshot of the game frame to display blurred behind the menu.
         """
         super().__init__(display, renderer)
+        # Main setup
+        self.log.info("Game has been paused")
         self.background_surface = background_surface  # Saved game frame used as the blurred backdrop
-        self._create_buttons()
+        # Create buttons
+        self.__create_buttons()
         self.buttons.add(
             self.continue_btn,
             self.controls_btn,
@@ -55,7 +58,7 @@ class PauseMenu(Window):
 
         super().draw(dt)
 
-    def _create_buttons(self) -> None:
+    def __create_buttons(self) -> None:
         """Create and store all buttons displayed in the pause menu."""
         font = pygame.font.Font(self.fonts["OldeTome"], 43)
         width = 400
@@ -114,3 +117,6 @@ class PauseMenu(Window):
             action="exit",
             **kwargs
         )
+
+    def show_back_button(self):
+        return False
