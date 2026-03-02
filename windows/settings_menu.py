@@ -14,8 +14,9 @@ class SettingsMenu(Window):
         self.log = logging.getLogger(__name__)
         self.log.info("Initialising Settings Menu module")
 
-        # Setup Configs
-        self.config_manager = ConfigManager("assets\\game_settings\\config_user.ini")
+        # Setup Configs — always read from player 1's user config
+        user_id = user[0]  # user is (user_id, username), passed in from window_manager as player1
+        self.config_manager = ConfigManager(f"assets\\game_settings\\users\\config_{user_id}.ini")
         self.config = self.config_manager.get_config()
         self.changed = False # Whether any settings have been changed
 
@@ -31,7 +32,7 @@ class SettingsMenu(Window):
         self.fps = self.config.get("Window", "FPS")
         # Button setup
         self.__back_btn = Button(
-            (150, 120),
+            (150, 90),
             (160, 60),
             "Back",
             pygame.font.Font(self.fonts["OldeTome"], 37),
@@ -48,7 +49,7 @@ class SettingsMenu(Window):
         )
 
         self.__graphics_label = Button(
-            (self.center_x, 120),
+            (self.center_x, 70),
             (235, 70),
             "Graphics",
             pygame.font.Font(self.fonts["OldeTome"], 56),

@@ -38,6 +38,7 @@ class MainMenu(Window):
         self.buttons.add(
             self.player1_label,
             self.__start_btn,
+            self.__leaderboard_btn,
             self.__controls_btn,
             self.__settings_btn,
             self.__exit_btn
@@ -112,7 +113,7 @@ class MainMenu(Window):
         ) if self.player2_ID is None else None
 
         self.__start_btn = Button(
-            (self.center_x, 500),
+            (self.center_x, 360),
             (menu_width, height),
             "Start",
             menu_font,
@@ -129,7 +130,7 @@ class MainMenu(Window):
             fill_on_hover=True
         )
         self.__leaderboard_btn = Button(
-            (self.center_x, 590),
+            (self.center_x, 450),
             (menu_width, height),
             "Leaderboard",
             menu_font,
@@ -146,7 +147,7 @@ class MainMenu(Window):
             fill_on_hover=True
         )
         self.__controls_btn = Button(
-            (self.center_x, 590),
+            (self.center_x, 540),
             (menu_width, height),
             "Controls",
             menu_font,
@@ -164,7 +165,7 @@ class MainMenu(Window):
         )
 
         self.__settings_btn = Button(
-            (self.center_x, 680),
+            (self.center_x, 630),
             (menu_width, height),
             "Settings",
             menu_font,
@@ -182,7 +183,7 @@ class MainMenu(Window):
         )
 
         self.__exit_btn = Button(
-            (self.center_x, 770),
+            (self.center_x, 720),
             (menu_width, height),
             "Exit",
             menu_font,

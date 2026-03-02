@@ -40,7 +40,7 @@ class GameSetup(Window):
     def __create_buttons(self):
         font = pygame.font.Font(self.fonts["OldeTome"], 40)
         self.__back_btn = Button(
-            (150, 120),
+            (150, 90),
             (160, 60),
             "Back",
             pygame.font.Font(self.fonts["OldeTome"], 37),

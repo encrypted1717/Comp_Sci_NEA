@@ -23,11 +23,38 @@ class CombatSystem:
                     4: (55, -40, 75, 40),
                 },
             },
+            "punch_2": {
+                "damage_attr": "punch_2_damage",
+                "hitbox": {
+                    1: (30, -40, 65, 40),
+                    2: (55, -40, 75, 40)
+                }
+            },
             "jump_strike": {
                 "damage_attr": "jump_strike_damage",
                 "hitbox": {
                     1: (10, -10, 50, 35),
-                    2: (20, -10, 65, 35),
+                    2: (20, -10, 65, 35)
+                },
+            },
+            "energy_punch": {
+                "damage_attr": "energy_punch_damage",
+                "hitbox": {
+                    3: (10, -10, 35, 20),
+                    4: (20, -15, 55, 35),
+                    5: (25, -25, 65, 45),
+                    6: (30, -35, 70, 70),
+                    7: (55, -40, 100, 100),
+                },
+            },
+            "slide_attack": {
+                "damage_attr": "slide_attack_damage",
+                # Hitbox sits low (near feet) and extends forward — adjust frame indices
+                # once you know which frames are the active hit frames in the animation
+                "hitbox": {
+                    2: (10,  -20, 60, 25),
+                    3: (30,  -20, 75, 25),
+                    4: (55,  -20, 85, 25),
                 },
             },
         }
@@ -67,8 +94,20 @@ class CombatSystem:
                 defender.blocks_remaining -= 1
                 defender.block_regen_timer = 0.0
             else:
-                # Either not blocking, or block is broken — take full damage
-                defender.health -= getattr(attacker, attack_data["damage_attr"], 0)
+                # Either not blocking, or block is broken — take full damage and trigger hurt
+                damage = getattr(attacker, attack_data["damage_attr"], 0)
+                attacker.energy += 10
+                defender.take_hit(damage)
+            # Slide attack launches defender straight up regardless of block
+            if attacker.attack_name == "slide_attack":
+                defender.velocity.y = -defender.jump_force
+                defender.on_ground = False
+            # Energy punch launches defender diagonally backwards and upward, ignores block
+            elif attacker.attack_name == "energy_punch":
+                direction = -1 if attacker.flip_x else 1
+                defender.velocity.x = direction * 3000
+                defender.velocity.y = -900
+                defender.on_ground = False
             self.__hit_registry.add(hit_key)
 
     def build_hitbox(self, attacker, hitbox_data):

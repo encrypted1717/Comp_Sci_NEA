@@ -54,7 +54,7 @@ class ExitMenu(Window):
 
             # Back
             Button(
-                (150, 120),
+                (150, 90),
                 (175, 70),
                 "Back",
                 menu_font,

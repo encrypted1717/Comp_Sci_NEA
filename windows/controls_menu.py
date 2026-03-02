@@ -156,7 +156,7 @@ class ControlsMenu(Window):
         key_font = pygame.font.Font(self.fonts["GothicPixel"],16)
 
         self._back_btn = Button(
-            (150, 120),
+            (150, 90),
             (160, 60),
             "Back",
             back_font,
@@ -172,7 +172,7 @@ class ControlsMenu(Window):
             fill_on_hover=True,
         )
         self._title = Button(
-            (self.center_x, 120),
+            (self.center_x, 70),
             (350, 70),
             "Controls",
             title_font,
@@ -192,7 +192,7 @@ class ControlsMenu(Window):
             player2_offset = 0
 
         self._p1_header = Button(
-            (600 + (player1_offset//2), 260),
+            (600 + (player1_offset//2), 150),
             (340 + player1_offset, 60),
             f"P1 - {self.player1[1]}",
             header_font,
@@ -201,7 +201,7 @@ class ControlsMenu(Window):
             offset_y=4
         )
         self._p2_header = Button(
-            (1320, 260),
+            (1320, 150),
             (340 + player2_offset, 60),
             p2_label,
             header_font,
@@ -212,7 +212,7 @@ class ControlsMenu(Window):
         y_step  = 90
         self._action_labels = []
         for index, action in enumerate(self.actions): # return index and the action
-            y = 360 + index * y_step
+            y = 250 + index * y_step
 
             label = Button(
                 (self.center_x, y),

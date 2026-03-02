@@ -1,3 +1,4 @@
+import pygame
 from core.window import Window
 from windows.game import Game
 from windows.game_setup import GameSetup
@@ -56,13 +57,15 @@ class WindowManager:
     def __push(self, state: str):
         self.__ensure_window(state)
         self.stack.append(state)
+        pygame.mouse.set_visible(state != "game")
 
     def __pop(self):
         """Return to the previous window, discarding overlay windows so they reset next time."""
         if len(self.stack) > 1:
             top = self.stack.pop()
             if top in ("pause", "settings", "controls", "exit"):  # Windows that will be deleted and not cached
-                self.windows.pop(top, None)  # dict.pop(key, default) — removes the key if it exists, does nothing if it doesn't (avoids a KeyError)
+                self.windows.pop(top, None)
+            pygame.mouse.set_visible(self.get_state() != "game")
 
     def __reset_to(self, state: str):
         """
@@ -73,6 +76,7 @@ class WindowManager:
         self.windows = {}
         self.pause_background = None
         self.__ensure_window(state)
+        pygame.mouse.set_visible(state != "game")
 
     def update_window(self, events):
         action = self.__get_window().event_handler(events)
