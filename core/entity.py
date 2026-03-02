@@ -39,11 +39,13 @@ class Entity(pygame.sprite.Sprite):
         self.sprite_bounds = self.image.get_bounding_rect().move(self.img_rect.topleft)  # Dynamic Hitbox based on animation
 
         # Physics
+        self.is_moving = False
         self.velocity = self.vector(0, 0)
         self.acceleration = self.vector(0, 0)
         self.horizontal_acceleration = 2250.0
         self.horizontal_friction = 11
-        self.sprint_force = 1500
+        self.sprint_force = 1450
+        self.slide_force = 650
         self.jump_force = 650
         self.double_jump_force = 450
         self.down_force = 1500
@@ -61,6 +63,7 @@ class Entity(pygame.sprite.Sprite):
         # Combat
         self.punch_1_damage = 6
         self.jump_strike_damage = 0
+        self.slide_attack_damage = 10
         self.attacking = False
         self.attack_name = None
         self.attack_id = 0
@@ -107,7 +110,8 @@ class Entity(pygame.sprite.Sprite):
             "activate": 2,
             "punch_1": 2,
             "jump_strike": 2,
-            "death": 3,
+            "slide_attack": 2,
+            "death": 3
         }
         self.animation_manager.set_animation("default")
         self.__log.info("Entity created: id = %s sprite_type = %s", id(self), sprite_type)
@@ -120,6 +124,7 @@ class Entity(pygame.sprite.Sprite):
 
         load("default", path_fight + "punch_1.png", scale=self.sprite_scale, frame_indices=[0])
         load("punch_1", path_fight + "punch_1.png", scale=self.sprite_scale, cooldown=0.035)
+        load("punch_2", path_fight + "punch_2.png", scale=self.sprite_scale)
         load("block", path_fight + "block.png", scale=self.sprite_scale, cooldown=0.15)
         load("activate", path_fight + "skill_charging.png", scale=self.sprite_scale, cooldown=0.12)  # Make this a skill activation not a charging anim
         load("jump", path_move + "upward_jump.png", scale=self.sprite_scale, frame_indices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 2, 1, 0], cooldown=0.04)
@@ -129,6 +134,7 @@ class Entity(pygame.sprite.Sprite):
         load("stop_sprint", path_move + "stop_running.png", scale=self.sprite_scale)
         load("crouch", path_move + "crouch.png", scale=self.sprite_scale, cooldown=0.035)
         load("jump_strike", path_move + "jump_strike.png", scale=self.sprite_scale)
+        load("slide_attack", path_fight + "slide_attack.png", scale=self.sprite_scale)
         load("death", path_other + "death.png", scale=self.sprite_scale)
 
     def update(self, dt):
@@ -235,7 +241,12 @@ class Entity(pygame.sprite.Sprite):
 
         if inp["punch"]:
             self.attacking = True
-            self.attack_name = "punch_1" if self.on_ground else "jump_strike"
+            if inp["sprint"] and inp["down"] and self.on_ground and self.is_moving:
+                self.attack_name = "slide_attack"
+            elif self.on_ground:
+                self.attack_name = "punch_1"
+            else:
+                self.attack_name = "jump_strike"
             self.attack_id += 1
 
         if inp["activate"]:
@@ -247,24 +258,23 @@ class Entity(pygame.sprite.Sprite):
             if self.can_activate:
                 pass # run ability
 
-        if inp["block"]:
-            if self.blocks_remaining > 0:
-                self.is_blocking = True
-            else:
-                self.is_blocking = False
+        self.is_blocking = inp["block"] and self.blocks_remaining > 0
 
 
     def apply_movement(self, inp):
-        if self.animation_manager.current_animation_name == "crouch":
+        if inp["down"] and not self.on_ground:
             self.acceleration.y += self.down_force  # Extra downward force when crouching
 
         axis = (1 if inp["right"] else 0) - (1 if inp["left"] else 0)
         if axis == 0:
             self.acceleration.x = 0.0
+            self.is_moving = False
             return
-
+        self.is_moving = True
         self.flip_x = (axis < 0)
-        accel = self.horizontal_acceleration + (self.sprint_force if (inp["sprint"] and not inp["down"]) else 0.0)
+        sprint_force = self.sprint_force if inp["sprint"] else 0.0
+        slide_force = self.slide_force if self.attacking and self.attack_name == "slide_attack" else 0.0
+        accel = self.horizontal_acceleration + sprint_force + slide_force
         self.acceleration.x = axis * accel
 
     def select_animation(self, inp):
@@ -282,7 +292,7 @@ class Entity(pygame.sprite.Sprite):
             requested = self.attack_name
             restart = True
 
-        elif inp["down"]:
+        elif inp["down"] and not inp["sprint"]:
             requested = "crouch"
 
         elif self.is_blocking:

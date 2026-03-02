@@ -48,6 +48,17 @@ class Game(Window):
             offset_y=4
         )
         self.energy1 = pygame.Rect(33, 105, 235, 40)
+        self.energy1_frame = Button(
+            (149, 125),
+            (237, 40),
+            "",
+            block_font,
+            '#000000',
+            '#ffffff',
+            3,
+            border_colour="#000000",
+            fill=False
+        )
         self.block1_label = Button(
             (105, 170),
             (155, 35),
@@ -72,8 +83,18 @@ class Game(Window):
             border_colour="#000000",
             offset_y=4
         )
-        # 1720, 150, 235, 40
         self.energy2 = pygame.Rect(1653, 105, 235, 40)
+        self.energy2_frame = Button(
+            (1770, 125),
+            (235, 40),
+            "",
+            block_font,
+            '#000000',
+            '#ffffff',
+            5,
+            border_colour="#000000",
+            fill=False
+        )
         self.block2_label = Button(
             (1725, 170),
             (150, 35),
@@ -92,8 +113,11 @@ class Game(Window):
         self.buttons.add(
             self.health1_label,
             self.health2_label,
+            self.energy1_frame,
+            self.energy2_frame,
             self.block1_label,
             self.block2_label
+
         )
 
     def __load_controls(self):
@@ -162,8 +186,8 @@ class Game(Window):
 
         self.__draw_entities()
         self.__update_attributes()
-        super().draw(dt)
         self.__draw_energy()
+        super().draw(dt)
         self.__process_combat()
 
         self.last_frame = self.surface.copy()
@@ -182,6 +206,11 @@ class Game(Window):
     def __draw_energy(self):
         pygame.draw.rect(self.surface, (173, 216, 230), self.energy1)
         pygame.draw.rect(self.surface, (173, 216, 230), self.energy2)
+        for activation in range(5):
+            x1 = int(33 + activation * 47.4)
+            x2 = int(1888 - activation * 47.5)
+            pygame.draw.line(self.surface, (0, 0, 0), (x1, 105), (x1, 144), 3)
+            pygame.draw.line(self.surface, (0, 0, 0), (x2, 105), (x2, 144), 3)
 
     def __draw_debug(self, entity):
         # Collision body
