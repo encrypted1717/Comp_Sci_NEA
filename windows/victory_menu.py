@@ -20,7 +20,7 @@ class VictoryMenu(Window):
         ESC is intentionally disabled on this screen.
     """
 
-    def __init__(self, display: pygame.Surface, renderer, winner: tuple[str, str]) -> None:
+    def __init__(self, display: pygame.Surface, renderer, winner: tuple) -> None:
         """
             Initialise the victory menu.
 
@@ -58,7 +58,8 @@ class VictoryMenu(Window):
 
     def __create_buttons(self) -> None:
         """Create and store all labels and buttons displayed on the victory screen."""
-        player_label, username = self._winner
+        username = self._winner[1]
+        player_label = self._winner[0]
 
         menu_font  = pygame.font.Font(self.fonts["OldeTome"], 43)
         small_font = pygame.font.Font(self.fonts["OldeTome"], 34)
@@ -72,20 +73,19 @@ class VictoryMenu(Window):
         }
 
         self.victory_label = Button(
-            (self.center_x, self.center_y - 310),
-            (500, 110),
-            "Victory!",
-            title_font,
-            "#ffffff", "#000000", 4,
-            offset_y=4,
+            (self.center_x, 120), (235, 70),
+            "Victory",
+            title_font, "#ffffff", "#000000",
+            offset_y=4
         )
 
         self.win_label = Button(
-            (self.center_x, self.center_y - 510),
+            (self.center_x, self.center_y - 210),
             (500, 110),
             f"{player_label} - {username}  wins!!",  # player_label is e.g. "Player 1", username is their login name
             menu_font,
-            "#ffffff", "#000000",
+            "#ffffff",
+            "#000000",
             offset_y=4,
         )
 
@@ -94,7 +94,9 @@ class VictoryMenu(Window):
             (550, 90),
             "What would you like to do?",
             small_font,
-            "#ffffff", "#000000", 3,
+            "#ffffff",
+            "#000000",
+            3,
             border_colour="#ffffff",
             offset_y=4,
         )
@@ -104,7 +106,9 @@ class VictoryMenu(Window):
             (340, 90),
             "Play Again",
             menu_font,
-            "#ffffff", "#000000", 5,
+            "#ffffff",
+            "#000000",
+            5,
             border_colour="#ffffff",
             offset_y=4,
             action="setup",  # "setup" pushes the game setup screen so players can choose mode again
@@ -116,7 +120,9 @@ class VictoryMenu(Window):
             (340, 90),
             "Exit to Main Menu",
             menu_font,
-            "#ffffff", "#000000", 3,
+            "#ffffff",
+            "#000000",
+            3,
             border_colour="#ffffff",
             offset_y=4,
             action="main",  # "main" triggers a hard reset of the window stack back to the main menu

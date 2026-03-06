@@ -47,7 +47,7 @@ class CollisionManager:
         coming_from_above = prev_feet_y <= platform_rect.top + landing_tolerance
         falling = entity.velocity.y >= 0
         step_height = 40 * entity.sprite_scale
-        step = platform_rect.top >= entity.body.bottom - step_height
+        step = not platform_is_tall and platform_rect.top >= entity.body.bottom - step_height
         if falling and (coming_from_above or step):
             # Snap feet to platform top
             entity.position.y = platform_rect.top
@@ -67,8 +67,20 @@ class CollisionManager:
         if not platform_is_tall:
             return
 
-        # --- Tall platforms act like walls/barriers ---
-        # Only resolve horizontally here (top landing was already handled above).
+        # --- Tall platforms: ceiling and wall collisions ---
+        # Check if the entity is hitting the underside (ceiling) of the platform.
+        # This happens when the entity is moving upward and their top overlaps the platform bottom.
+        hitting_ceiling = entity.velocity.y < 0 and body.top < platform_rect.bottom and body.top >= platform_rect.top
+        if hitting_ceiling:
+            # Push entity down so their head no longer clips into the platform
+            entity.position.y = platform_rect.bottom + body.height
+            entity.velocity.y = 0  # kill upward momentum so they don't keep pushing into it
+            entity.body.midbottom = (int(entity.position.x), int(entity.position.y))
+            entity.rect = entity.body
+            entity.sync_img_rect_to_body()
+            return
+
+        # --- Horizontal wall resolution for tall platforms ---
         if body.centerx < platform_rect.centerx:
             entity.position.x -= overlap.width
         else:

@@ -29,7 +29,7 @@ def get_settings(path: str, logger: logging.Logger) -> tuple[int, int, str, int,
             A tuple of (width, height, display_mode, framerate, vsync).
     """
     import shutil
-    default_path   = "assets\\game_settings\\config_default.ini"
+    default_path = "assets\\game_settings\\config_default.ini"
     config_manager = ConfigManager(path)
 
     if not config_manager.file_read:
@@ -40,20 +40,20 @@ def get_settings(path: str, logger: logging.Logger) -> tuple[int, int, str, int,
     config = config_manager.get_config()
     desktop_w, desktop_h = pygame.display.get_desktop_sizes()[0]
 
-    raw_width  = config.get("Graphics", "Screen_Width")
+    raw_width = config.get("Graphics", "Screen_Width")
     raw_height = config.get("Graphics", "Screen_Height")
     width  = int(raw_width)  if raw_width  != "Default" else desktop_w  # Fall back to desktop size if unset
     height = int(raw_height) if raw_height != "Default" else desktop_h
 
     display_mode = config.get("Window", "Display_Mode")
-    fps          = config.get("Window", "FPS")
+    fps = config.get("Window", "FPS")
 
     # Write the resolved resolution back so "Default" is only used once
     if raw_width == "Default" or raw_height == "Default":
         config_manager.set_values({"Graphics": {"Screen_Width": width, "Screen_Height": height}})
 
     framerate = 0 if fps.lower() == "unlimited" else int(fps)  # 0 = uncapped in pygame clock
-    vsync     = config.get("Window", "Vsync", fallback="Off").strip().lower() == "on"
+    vsync = config.get("Window", "Vsync", fallback="Off").strip().lower() == "on"
     return width, height, display_mode, framerate, vsync
 
 
@@ -119,7 +119,7 @@ def main() -> None:
     # Setup logging — all modules share this root config
     logging.basicConfig(
         level=logging.DEBUG,
-        filename='utils\\debug.log',
+        filename='assets\\data\\debug.log',
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %I:%M:%S %p'
     )
@@ -130,9 +130,9 @@ def main() -> None:
     clock = pygame.time.Clock()
 
     # Safe default display before any user config is loaded — applied once player 1 logs in
-    framerate          = 60
+    framerate = 60
     user_settings_path = None  # Remains None until player 1 completes login
-    display, flags     = get_display(1280, 720, "Windowed", log, vsync=False)
+    display, flags = get_display(1280, 720, "Windowed", log, vsync=False)
 
     renderer = VirtualRenderer(display, design_size=(1920, 1080))
     manager  = WindowManager(display, renderer)

@@ -64,7 +64,7 @@ class Entity(pygame.sprite.Sprite):
         # Combat
         self.punch_1_damage = 6
         self.punch_2_damage = 8
-        self.jump_strike_damage = 0
+        self.jump_strike_damage = 10
         self.slide_attack_damage = 10
         self.energy_punch_damage = 25
         self.energy_punch_phase = None     # None | "activating" | "charging" | "striking"
@@ -159,8 +159,8 @@ class Entity(pygame.sprite.Sprite):
 
         load("default", path_fight + "punch_1.png", scale=self.sprite_scale, frame_indices=[0])
         load("taking_damage", path_other + "taking_damage.png", scale=self.sprite_scale)
-        load("punch_1", path_fight + "punch_1.png", scale=self.sprite_scale, cooldown=0.05)
-        load("punch_2", path_fight + "punch_2.png", scale=self.sprite_scale)
+        load("punch_1", path_fight + "punch_1.png", scale=self.sprite_scale, cooldown=0.075) #0.05
+        load("punch_2", path_fight + "punch_2.png", scale=self.sprite_scale, cooldown=0.075)
         load("energy_charge", path_other + "energy_charge.png", scale=self.sprite_scale)
         load("energy_punch", path_other + "energy_punch.png", scale=self.sprite_scale)
         load("teleport_in", path_other + "teleport_in.png", scale=self.sprite_scale)
@@ -179,6 +179,15 @@ class Entity(pygame.sprite.Sprite):
 
     def update(self, dt):
         self.dt = dt
+
+        # Death takes priority over everything — lock into death anim and skip all other logic
+        if self.health <= 0:
+            self.animation_manager.set_animation("death", loop=False, restart=False)
+            return
+
+        # Reset on_ground each frame so collision_manager is the sole authority on grounded state.
+        # Without this, walking off a ledge keeps on_ground=True for one extra frame.
+        self.on_ground = False
         self.air_time = 0.0 if self.on_ground else self.air_time + dt
 
         # Physics Update
@@ -253,21 +262,18 @@ class Entity(pygame.sprite.Sprite):
         if self.teleport_phase == "in" and not self.animation_manager.is_playing():
             self.teleport_phase = None
 
-        # Clear attack state once any non-energy-punch animation finishes
-        if self.attacking and self.energy_punch_phase != "striking" and not self.animation_manager.is_playing():
+        # Clear attack state once any non-energy-punch animation finishes AND is no longer frozen on its last frame.
+        # Clearing while still frozen lets same-priority attacks (e.g. punch_1) fire before the anim visually ends.
+        if self.attacking and self.energy_punch_phase != "striking" and not self.animation_manager.is_playing() and not self.animation_manager.freeze:
             self.attacking = False
             self.attack_name = None
 
     def event_handler(self, events):
         self.acceleration = self.vector(0, 0)
-
-        if self.health > 0:
-            inp = self.__get_input_state(events)
-            self.apply_actions(inp)
-            self.apply_movement(inp)
-            self.select_animation(inp)
-        else:
-            self.animation_manager.set_animation("death", loop=False, restart=False)
+        inp = self.__get_input_state(events)
+        self.apply_actions(inp)
+        self.apply_movement(inp)
+        self.select_animation(inp)
 
     def __get_input_state(self, events) -> dict:
         self.keys = pygame.key.get_pressed()
@@ -328,7 +334,7 @@ class Entity(pygame.sprite.Sprite):
         if inp["punch"] and not self.attacking and self.punch_combo_step != 2:
             self.attacking = True
             self._attack_just_started = True
-            if inp["sprint"] and inp["down"] and self.on_ground and self.is_moving:
+            if inp["sprint"] and inp["down"] and self.on_ground and (inp["left"] or inp["right"]):
                 # Slide attack — plays normally, overlay stays if charging
                 self.attack_name = "slide_attack"
                 self.punch_combo_step = 0
@@ -436,7 +442,7 @@ class Entity(pygame.sprite.Sprite):
             requested = self.attack_name
             restart = True
 
-        elif inp["down"] and not inp["sprint"]:
+        elif inp["down"] and not inp["sprint"] and not self.attacking:
             requested = "crouch"
 
         elif self.is_taking_damage:
@@ -481,7 +487,13 @@ class Entity(pygame.sprite.Sprite):
         if requested is None:
             return
 
-        if self.animation_manager.is_playing():
+        # Block lower-priority interruptions whether the animation is actively playing
+        # OR frozen on its last frame (freeze=True means it finished, not that it can be replaced freely)
+        # Exception: hold-input animations (crouch, block) should not block transitions once their input is released
+        hold_anim_released = (current == "crouch" and not inp["down"]) or \
+                             (current == "block" and not inp["block"])
+        anim_active = (self.animation_manager.is_playing() or self.animation_manager.freeze) and not hold_anim_released
+        if anim_active:
             if self.__get_priority(requested) < self.__get_priority(current):
                 return
 
@@ -491,6 +503,26 @@ class Entity(pygame.sprite.Sprite):
     def __get_priority(self, name: str) -> int:
         """Look up animation priority, defaulting to 0 for unknown animations."""
         return self.animation_priority.get(name, 0)
+
+    def teleport_to(self, position: tuple) -> None:
+        """
+            Warp the entity to a position and begin the teleport_in animation.
+
+            Called by game.py once teleport_out finishes and the portal position
+            is known. Owns all entity-side state changes so game.py only needs to
+            call one method rather than writing six fields directly.
+
+            Args:
+                position: (x, y) midbottom target coordinates to warp to.
+        """
+        self.position.x = position[0]
+        self.position.y = position[1]
+        self.body.midbottom = position
+        self.velocity = self.vector(0, 0)
+        self.teleport_phase = "in"
+        self.teleport_just_started = True  # tells select_animation to start teleport_in this frame only
+        self.teleport_return_requested = False
+        self.portal_open = False  # portal is closing - entity can open a new one after this
 
     def take_hit(self, damage: int):
         """Called by combat system when a hit lands. Applies damage and triggers taking_damage state."""

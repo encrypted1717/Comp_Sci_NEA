@@ -1,18 +1,13 @@
 import pygame
-import logging
 import configparser
 from core.window import Window
 from core.button import Button
 from core.config_manager import ConfigManager
 
 
-class ControlsMenu(Window):
+class Controls(Window):
     def __init__(self, display, renderer, player1, player2):
         super().__init__(display, renderer)
-
-        # Logging setup
-        self.log = logging.getLogger(__name__)
-        self.log.info("Initialising Controls Menu")
 
         # Main setup
         self.player1 = player1  # (user_id, username)
@@ -44,97 +39,83 @@ class ControlsMenu(Window):
         self.__create_buttons()
 
     def event_handler(self, events):
-        # Sync apply button visibility
+        # Sync apply button and rebind overlay in/out of the sprite group
         if self.changed and not self.buttons.has(self._apply_btn):
             self.buttons.add(self._apply_btn)
         elif not self.changed and self.buttons.has(self._apply_btn):
             self.buttons.remove(self._apply_btn)
 
-        # Sync rebinding overlay visibility
         if self._rebinding and not self.buttons.has(self._rebind_overlay):
             self.buttons.add(self._rebind_overlay)
         elif not self._rebinding and self.buttons.has(self._rebind_overlay):
             self.buttons.remove(self._rebind_overlay)
 
-        for event in events:
-
-            # Listening for a new key or mouse button
-            if self._rebinding:
-                device = None
-                raw_name = None
-
+        # While waiting for a keypress, intercept all events before normal handling
+        if self._rebinding:
+            for event in events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self._rebinding = None
                         return None
-                    device = "key"
-                    raw_name = pygame.key.name(event.key)   # e.g. "left shift"
-
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    device = "mouse"
-                    raw_name = str(event.button)            # e.g. "1", "2", "3"
-
-                if device and raw_name:
-                    player_num, action = self._rebinding
-                    ini_value = self._build_value(device, raw_name)
-                    display = self._get_key_name(ini_value)
-
-                    # Clear any existing action using this same bind on the same player
-                    controls = self._p1_controls if player_num == 1 else self._p2_controls
-                    for existing_action, existing_value in controls.items():
-                        if existing_value == ini_value and existing_action != action:
-                            controls[existing_action] = "none"
-                            ex_p1_btn, ex_p2_btn = self._rebind_btns[existing_action]
-                            ex_btn = ex_p1_btn if player_num == 1 else ex_p2_btn
-                            ex_btn.update_text("Unbound")
-                            self.log.debug("P%s %s unbound due to conflict", player_num, existing_action)
-                            break
-
-                    p1_btn, p2_btn = self._rebind_btns[action]
-                    if player_num == 1:
-                        self._p1_controls[action] = ini_value
-                        p1_btn.update_text(display)
-                    else:
-                        self._p2_controls[action] = ini_value
-                        p2_btn.update_text(display)
-
-                    self._rebinding = None
-                    self.changed = True
-                    self.log.debug("Rebound P%s %s -> %s", player_num, action, ini_value)
-                # Eat all events while waiting for input
-                return None
-
-            # Normal handling
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                return "back"
-
-            for btn in self.buttons:
-                action = btn.handle_event(event)
-                if not action:
-                    continue
-
-                if action == "back":
-                    return "back"
-
-                if action == "apply":
-                    self._save_controls()
-                    self.changed = False
-                    self.log.info("Controls saved")
-                    return "reload_controls"
-
-                if action.startswith("rebind_p1_"):
-                    self._rebinding = (1, action[len("rebind_p1_"):])
+                    self._apply_rebind("key", pygame.key.name(event.key))
                     return None
-
-                if action.startswith("rebind_p2_"):
-                    self._rebinding = (2, action[len("rebind_p2_"):])
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self._apply_rebind("mouse", str(event.button))
                     return None
+            return None  # eat all events until input received
 
-        return None
+        return super().event_handler(events)
 
     def draw(self, dt):
         self.surface.fill((255, 255, 255))
         super().draw(dt)
+
+    def handle_action(self, action: str) -> str | None:
+        """Route button actions - rebind triggers and apply are handled here; everything else passes through."""
+        if action == "apply":
+            self._save_controls()
+            self.changed = False
+            self.log.info("Controls saved")
+            return "reload_controls"
+
+        if action.startswith("rebind_p1_"):
+            self._rebinding = (1, action[len("rebind_p1_"):])
+            return None
+
+        if action.startswith("rebind_p2_"):
+            self._rebinding = (2, action[len("rebind_p2_"):])
+            return None
+
+        return action  # passes "back" through to Window, which returns it to WindowManager
+
+    def _apply_rebind(self, device: str, raw_name: str) -> None:
+        """Commit a newly captured key/mouse bind for the player currently in self._rebinding."""
+        player_num, action = self._rebinding
+        ini_value = self._build_value(device, raw_name)
+        display    = self._get_key_name(ini_value)
+        controls   = self._p1_controls if player_num == 1 else self._p2_controls
+
+        # Clear any action already using this bind for the same player
+        for existing_action, existing_value in controls.items():
+            if existing_value == ini_value and existing_action != action:
+                controls[existing_action] = "none"
+                ex_p1_btn, ex_p2_btn = self._rebind_btns[existing_action]
+                ex_btn = ex_p1_btn if player_num == 1 else ex_p2_btn
+                ex_btn.update_text("Unbound")
+                self.log.debug("P%s %s unbound due to conflict", player_num, existing_action)
+                break
+
+        p1_btn, p2_btn = self._rebind_btns[action]
+        if player_num == 1:
+            self._p1_controls[action] = ini_value
+            p1_btn.update_text(display)
+        else:
+            self._p2_controls[action] = ini_value
+            p2_btn.update_text(display)
+
+        self._rebinding = None
+        self.changed = True
+        self.log.debug("Rebound P%s %s -> %s", player_num, action, ini_value)
 
     def _load_section(self, section: str, path: str, defaults: dict) -> dict:
         """Load all CONTROL_ACTIONS from the given section, falling back to defaults."""
@@ -149,28 +130,10 @@ class ControlsMenu(Window):
         return result
 
     def __create_buttons(self):
-        back_font = pygame.font.Font(self.fonts["OldeTome"],37)
         title_font = pygame.font.Font(self.fonts["OldeTome"],56)
-        header_font = pygame.font.Font(self.fonts["GothicPixel"],16)
         action_font = pygame.font.Font(self.fonts["OldeTome"],36)
-        key_font = pygame.font.Font(self.fonts["GothicPixel"],16)
+        general_font = pygame.font.Font(self.fonts["GothicPixel"],16)
 
-        self._back_btn = Button(
-            (150, 90),
-            (160, 60),
-            "Back",
-            back_font,
-            "#ffffff",
-            "#000000",
-            5,
-            border_colour="#000000",
-            offset_y=4,
-            action="back",
-            hover_text_colour="#000000",
-            hover_rect_colour="#ffffff",
-            hover_border_colour="#000000",
-            fill_on_hover=True,
-        )
         self._title = Button(
             (self.center_x, 70),
             (350, 70),
@@ -195,7 +158,7 @@ class ControlsMenu(Window):
             (600 + (player1_offset//2), 150),
             (340 + player1_offset, 60),
             f"P1 - {self.player1[1]}",
-            header_font,
+            general_font,
             "#ffffff",
             "#000000",
             offset_y=4
@@ -204,7 +167,7 @@ class ControlsMenu(Window):
             (1320, 150),
             (340 + player2_offset, 60),
             p2_label,
-            header_font,
+            general_font,
             "#ffffff",
             "#000000",
             offset_y=4
@@ -229,7 +192,7 @@ class ControlsMenu(Window):
                 (600 + (player1_offset//2), y),
                 (280, 60),
                 self._get_key_name(self._p1_controls[action]),
-                key_font,
+                general_font,
                 "#000000",
                 "#ffffff",
                 5,
@@ -244,7 +207,7 @@ class ControlsMenu(Window):
             p2_btn = Button(
                 (1320, y), (280, 60),
                 self._get_key_name(self._p2_controls[action]),
-                key_font,
+                general_font,
                 "#000000",
                 "#ffffff",
                 5,
@@ -259,7 +222,7 @@ class ControlsMenu(Window):
             self._rebind_btns[action] = (p1_btn, p2_btn)
         self._apply_btn = Button(
             (1770, 960), (160, 60), "Apply",
-            key_font, "#000000", "#ffffff", 5,
+            general_font, "#000000", "#ffffff", 5,
             border_colour="#000000", offset_y=4,
             action="apply",
             hover_text_colour="#ffffff", hover_rect_colour="#000000",
@@ -278,8 +241,8 @@ class ControlsMenu(Window):
             self._title,
             self._p1_header,
             self._p2_header,
-            *self._action_labels,
-            *(btn for pair in self._rebind_btns.values() for btn in pair),
+            *self._action_labels, # * Unpacks every item within list
+            *(btn for pair in self._rebind_btns.values() for btn in pair), # Same here
         )
 
     def _save_controls(self):

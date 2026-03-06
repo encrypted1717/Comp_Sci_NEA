@@ -60,7 +60,6 @@ class AnimationManager:
                 RuntimeError: If the sprite sheet cannot be loaded.
                 ValueError: If no valid frames are extracted.
         """
-
         # Exception handler
         try:
             sheet = pygame.image.load(path).convert_alpha()
@@ -120,7 +119,6 @@ class AnimationManager:
             Args:
                 dt: delta time to measure time passed
         """
-
         if not self.freeze and self.current_animation_frames:
             self.elapsed_time += dt
             if self.elapsed_time >= self.current_animation_cooldown:
@@ -174,7 +172,6 @@ class AnimationManager:
 
     def get_frame(self) -> pygame.Surface:
         """Returns the current frame."""
-
         if not self.current_animation_frames:
             self.log.exception("No animation had been loaded into the manager")
             raise RuntimeError("No animation selected")
@@ -183,7 +180,6 @@ class AnimationManager:
 
     def get_frame_index(self) -> int:
         """Returns the current frame index."""
-
         if not self.current_animation_frames:
             self.log.exception("No animation had been loaded into the manager")
             raise RuntimeError("No animation selected")
@@ -192,7 +188,6 @@ class AnimationManager:
 
     def get_name(self) -> str:
         """Returns the name of current animation selected."""
-
         if not self.current_animation_frames:
             self.log.exception("No animation had been loaded into the manager")
             raise RuntimeError("No animation selected")

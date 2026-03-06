@@ -89,31 +89,28 @@ class PauseMenu(Window):
 
         self.controls_btn = Button(
             (self.center_x, 460),
-            (width, height),
-            "Controls",
+            text="Controls",
             action="controls",
             **kwargs
         )
 
         self.settings_btn = Button(
             (self.center_x, 550),
-            (width, height),
-            "Settings",
+            text="Settings",
+            action="settings",
             **kwargs
         )
 
         self.main_menu_btn = Button(
             (self.center_x, 640),
-            (width, height),
-            "Return to main menu",
+            text="Return to main menu",
             action="main",  # "main" triggers a hard reset of the window stack back to the main menu
             **kwargs
         )
 
         self.exit_btn = Button(
             (self.center_x, 730),
-            (width, height),
-            "Exit",
+            text="Exit",
             action="exit",
             **kwargs
         )

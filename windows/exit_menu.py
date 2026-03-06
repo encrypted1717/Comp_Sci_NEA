@@ -30,6 +30,7 @@ class ExitMenu(Window):
                 renderer: the renderer managing the virtual surface and scaling.
         """
         super().__init__(display, renderer)
+        # Create buttons
         self.__create_buttons()
         self.buttons.add(
             self.question_label,

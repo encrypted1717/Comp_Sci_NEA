@@ -25,8 +25,7 @@ class Background:
         self.__height = 0
 
         # Each layer holds the original image, its current scaled copy, scroll speed, and x position.
-        # Speeds are in virtual pixels per second — higher values scroll faster, giving the impression
-        # of being closer to the viewer. The dict structure allows each layer to have independent speed.
+        # Speeds are in virtual pixels per second - higher values scroll faster, giving the impression of being closer to the viewer. The dict structure allows each layer to have independent speed.
         layer_path = "assets\\images\\background\\parallax_mountain_pack\\layers\\"
         self.__background = [
             {"img_original": pygame.image.load(layer_path + "parallax-mountain-bg.png").convert(), "img": None, "speed": 2,  "x": -1150, "width": 0},
@@ -75,7 +74,7 @@ class Background:
             Args:
                 dt: delta time in seconds since the last frame.
         """
-        if self.__width == 0:  # resize() hasn't been called yet — nothing to scroll
+        if self.__width == 0:  # resize() hasn't been called yet - nothing to scroll
             return
         for layer in self.__background:
             # Modulo wraps x back to 0 once it reaches the image width, giving seamless looping
@@ -93,8 +92,8 @@ class Background:
         """
         for layer in self.__background:
             img = layer["img"]
-            width = layer["width"]  # Already cached in resize() — no get_width() call needed
+            width = layer["width"]  # Already cached in resize() - no get_width() call needed
             x = layer["x"]
 
-            surface.blit(img, (x - width, 0))  # Left copy — covers the seam as the right copy scrolls in
-            surface.blit(img, (x, 0))           # Right copy — the primary visible tile
+            surface.blit(img, (x - width, 0))  # Left copy - covers the seam as the right copy scrolls in
+            surface.blit(img, (x, 0))           # Right copy - the primary visible tile
