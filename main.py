@@ -47,13 +47,13 @@ def get_settings(path: str, logger: logging.Logger) -> tuple[int, int, str, int,
 
     display_mode = config.get("Window", "Display_Mode")
     fps = config.get("Window", "FPS")
+    vsync = False
 
     # Write the resolved resolution back so "Default" is only used once
     if raw_width == "Default" or raw_height == "Default":
         config_manager.set_values({"Graphics": {"Screen_Width": width, "Screen_Height": height}})
 
     framerate = 0 if fps.lower() == "unlimited" else int(fps)  # 0 = uncapped in pygame clock
-    vsync = config.get("Window", "Vsync", fallback="Off").strip().lower() == "on"
     return width, height, display_mode, framerate, vsync
 
 
@@ -85,7 +85,7 @@ def get_display(width: int, height: int, mode: str, logger: logging.Logger, vsyn
         raise ValueError(f"Unknown mode: {mode}")
 
     pygame.display.set_caption("Game")
-    display = pygame.display.set_mode((width, height), flags, vsync=1 if vsync else 0)
+    display = pygame.display.set_mode((width, height), flags, vsync=False)
     logger.info("Display setup: %s x %s  mode=%s  vsync=%s", width, height, mode, vsync)
     return display, flags
 

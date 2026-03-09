@@ -15,7 +15,7 @@ from core.config_manager import ConfigManager
 
 
 # TODO: Introduce more settings (e.g. audio, keybind display style)
-class SettingsMenu(Window):
+class Settings(Window):
     """
         In-game settings screen for display and window configuration.
 
@@ -114,6 +114,10 @@ class SettingsMenu(Window):
             return None
 
         if action == "cycle_fps":
+            if self.vsync == "On":
+                # Cycling fps while vsync is on - disable vsync first to avoid the mismatch crash
+                self.vsync = "Off"
+                self.__vsync_btn.update_text(self.vsync)
             self.fps = self.__cycle_setting(self.fps, self.fps_values)
             self.__fps_btn.update_text(self.fps)
             return None
@@ -126,6 +130,11 @@ class SettingsMenu(Window):
 
         if action == "toggle_vsync":
             self.vsync = "Off" if self.vsync == "On" else "On"
+            if self.vsync == "On":
+                # Snap fps to the monitor's refresh rate so vsync has a matching target
+                hz = str(pygame.display.get_current_refresh_rate())
+                self.fps = hz if hz in self.fps_values else self.fps_values[1]  # fall back to 60 if hz isn't in the list
+                self.__fps_btn.update_text(self.fps)
             self.__vsync_btn.update_text(self.vsync)
             self.changed = True
             return None

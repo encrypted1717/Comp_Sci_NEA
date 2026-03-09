@@ -165,6 +165,7 @@ class Game(Window):
             if self.round_over_timer >= self.round_over_delay:
                 p1_name = self.player1_data[1]
                 p2_name = self.player2_data[1] if self.player2_data else "CPU"
+                print(f"DEBUG victory: player1_data={self.player1_data}, p1_name={repr(p1_name)}")  # add this
                 if self.player1_wins >= 2:
                     # Include elapsed_time only for CPU wins so the leaderboard can record it
                     elapsed = round(self.elapsed_time, 2) if self.cpu_difficulty else None
@@ -298,7 +299,7 @@ class Game(Window):
             Read saved keybinds from each player's config file and apply them to their entity.
 
             Player 1 always reads from their own [Player1 Controls] section.
-            Player 2: if logged in, reads from their own [Player1 Controls]; otherwise reads
+            Player 2: if logged in, reads from their own [Player2 Controls]; otherwise reads
             from player 1's config under [Player2 Controls]. CPU entities are skipped entirely.
         """
         def apply_section(entity, path, section):
@@ -323,7 +324,7 @@ class Game(Window):
         if not self.cpu_difficulty:  # CPU has no keybinds to load
             if self.player2_data:
                 p2_path = f"assets\\game_settings\\users\\config_{self.player2_data[0]}.ini"
-                apply_section(self.player2, p2_path, "Player1 Controls")
+                apply_section(self.player2, p2_path, "Player2 Controls")
             else:
                 apply_section(self.player2, p1_path, "Player2 Controls")
 

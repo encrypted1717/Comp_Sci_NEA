@@ -23,7 +23,12 @@ class MainMenu(Window):
         ESC and the auto back button are disabled — the main menu is the root screen.
     """
 
-    def __init__(self, display: pygame.Surface, renderer, player1: tuple[int, str], player2: tuple[int, str] | None) -> None:
+    def __init__(self,
+                 display: pygame.Surface,
+                 renderer,
+                 player1: tuple[int, str],
+                 player2: tuple[int, str] | None
+                 ) -> None:
         """
             Initialise the main menu.
 
@@ -98,10 +103,10 @@ class MainMenu(Window):
 
     def __create_buttons(self) -> None:
         """Create and store all player labels and navigation buttons for the main menu."""
-        menu_font  = pygame.font.Font(self.fonts["OldeTome"], 43)
+        menu_font = pygame.font.Font(self.fonts["OldeTome"], 43)
         player_font = pygame.font.Font(self.fonts["GothicPixel"], 16)
         menu_width = 255
-        height     = 70
+        height = 70
         player_width = 175
 
         # Button width scales with username length so long names don't overflow their label

@@ -16,7 +16,7 @@ from core.button import Button
 from graphics.parallax_background import Background
 
 
-class LoginMenu(Window):
+class Login(Window):
     """
         Authentication screen for player login and registration.
 
@@ -27,20 +27,25 @@ class LoginMenu(Window):
         as there is nowhere to go back to.
     """
 
-    def __init__(self, display: pygame.Surface, renderer, player: int, logged_in_player: tuple[int, str] | None = None) -> None:
+    def __init__(self,
+                 display: pygame.Surface,
+                 renderer,
+                 player: int,
+                 logged_in_player: tuple[int, str] | None = None
+                 ) -> None:
         """
             Initialise the login menu.
 
             Args:
                 display: the pygame display surface.
                 renderer: the renderer managing the virtual surface and scaling.
-                player: which player is logging in — 1 or 2 — shown in the header label.
+                player: which player is logging in - 1 or 2 - shown in the header label.
                 logged_in_player: (user_id, username) of the already logged-in player, used
                                   to block the same account from logging in twice. None if
                                   no player is yet logged in.
         """
+        self.player = player  # Determines the "Player 1" / "Player 2" header labe
         super().__init__(display, renderer)
-        self.player = player  # Determines the "Player 1" / "Player 2" header label
         self.logged_in_player = logged_in_player  # Used to detect duplicate login attempts
 
         # Parallax background scrolls behind the login UI
@@ -48,7 +53,7 @@ class LoginMenu(Window):
         self.bg.resize((self.design_width, self.design_height))
 
         # Connect to the credentials database, creating the table if this is the first run
-        self.con    = sqlite3.connect("assets\\data\\login_credentials.db")
+        self.con = sqlite3.connect("assets\\data\\login_credentials.db")
         self.cursor = self.con.cursor()
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS login_credentials (
@@ -64,13 +69,13 @@ class LoginMenu(Window):
             self.__username_txt, self.__password_txt, self.__peak_btn
         )
 
-    def on_escape(self) -> None:
+    def on_escape(self) -> None | str:
         """Disable ESC — there is no previous screen to return to from login."""
-        return None
+        return "back" if self.player == 2 else None
 
     def show_back_button(self) -> bool:
         """Suppress the auto back button — login is the root screen."""
-        return False
+        return True if self.player == 2 else False
 
     def handle_action(self, action: str) -> tuple | str | None:
         """
@@ -330,7 +335,7 @@ class LoginMenu(Window):
             Validate the format of a username and password.
 
             Username rules: 3–26 characters.
-            Password rules: 6–26 characters, must contain at least one uppercase letter,
+            Password rules: 6 characters, must contain at least one uppercase letter,
             one lowercase letter, one digit, and one special character.
 
             Args:
@@ -340,7 +345,7 @@ class LoginMenu(Window):
             Returns:
                 A tuple of (username_valid, password_valid).
         """
-        username_valid = bool(username) and len(username) >= 3
+        username_valid = bool(username) and 3 <= len(username) <= 26
 
         password_valid = False
         if password and len(password) >= 6:
@@ -353,6 +358,6 @@ class LoginMenu(Window):
                 if char in special:  has_special = True
                 if has_upper and has_lower and has_num and has_special:
                     password_valid = True
-                    break  # All conditions met — no need to check remaining characters
+                    break  # All conditions met - no need to check remaining characters
 
         return username_valid, password_valid

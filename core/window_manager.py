@@ -11,11 +11,11 @@ import pygame
 from core.window import Window
 from windows.game import Game
 from windows.game_setup import GameSetup
-from windows.login import LoginMenu
+from windows.login import Login
 from windows.main_menu import MainMenu
 from windows.controls import Controls
 from windows.pause_menu import PauseMenu
-from windows.settings import SettingsMenu
+from windows.settings import Settings
 from windows.victory_menu import VictoryMenu
 from windows.leaderboard import Leaderboard
 from windows.exit_menu import ExitMenu
@@ -52,11 +52,11 @@ class WindowManager:
 
         # Window cache - maps state name to its Window instance.
         # Type hint clarifies the dict shape and suppresses IDE warnings.
-        self.windows: dict[str, Window] = {"login": LoginMenu(self.display, self.renderer, self.login_player)}
+        self.windows: dict[str, Window] = {"login": Login(self.display, self.renderer, self.login_player)}
 
-        self.pause_background = None  # last rendered game frame, passed to PauseMenu as its background
-        self.winner = None            # set when a best-of-3 winner is determined, passed to VictoryMenu
-        self.cpu_difficulty = None    # None means PvP; "easy"/"medium"/"hard" means PvCPU
+        self.pause_background = None # last rendered game frame, passed to PauseMenu as its background
+        self.winner = None # set when a best-of-3 winner is determined, passed to VictoryMenu
+        self.cpu_difficulty = None # None means PvP; "easy"/"medium"/"hard" means PvCPU
 
     def get_state(self) -> str:
         """Return the name of the currently active window (top of the stack)."""
@@ -84,11 +84,11 @@ class WindowManager:
         elif state == "controls":
             self.windows[state] = Controls(self.display, self.renderer, self.player1, self.player2)
         elif state == "settings":
-            self.windows[state] = SettingsMenu(self.display, self.renderer, self.player1)
+            self.windows[state] = Settings(self.display, self.renderer, self.player1)
         elif state == "pause":
             self.windows[state] = PauseMenu(self.display, self.renderer, self.pause_background)
         elif state == "login":
-            self.windows[state] = LoginMenu(self.display, self.renderer, self.login_player)
+            self.windows[state] = Login(self.display, self.renderer, self.login_player)
         elif state == "victory":
             self.windows[state] = VictoryMenu(self.display, self.renderer, self.winner)
         elif state == "leaderboard":
@@ -190,7 +190,7 @@ class WindowManager:
 
                 # Record to leaderboard only when Player 1 beats the CPU
                 if winner_label == "Player 1" and self.cpu_difficulty and elapsed_time is not None and self.player1:
-                    LeaderboardMenu.record_result(self.player1[1], elapsed_time)
+                    Leaderboard.record_result(self.player1[1], elapsed_time)
 
                 self.windows.pop("victory", None)  # rebuild so it shows the new winner
                 self.__push("victory")
@@ -250,7 +250,7 @@ class WindowManager:
         if action == "update_display":
             if "game" in self.windows:
                 self.windows["game"].reload_settings()
-            return action  # pass through to main.py so it can recreate the display surface
+            return "update_display", self.player1[0]  # pass through to main.py so it can recreate the display surface
 
         return None
 

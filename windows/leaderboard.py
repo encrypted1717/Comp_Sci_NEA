@@ -11,6 +11,7 @@
 
 import sqlite3
 import pygame
+import logging
 from datetime import date
 from core.window import Window
 from core.button import Button
@@ -60,20 +61,31 @@ class Leaderboard(Window):
         con.commit()
         return con
 
-    def record_result(self, username: str, elapsed_time: float) -> None:
+    @staticmethod
+    def record_result(username: str, elapsed_time: float) -> None:
         """
             Insert a new leaderboard entry for a Player 1 CPU victory.
 
-            Called by WindowManager immediately after the win is confirmed, before
-            the VictoryMenu is pushed, so the record is available the next time
-            the leaderboard is opened.
+            Staticmethod so WindowManager can call Leaderboard.record_result(...)
+            without needing a display/renderer to construct an instance first.
 
             Args:
                 username:     Player 1's display name.
                 elapsed_time: total active combat time in seconds (countdown and
                               post-round delays excluded).
         """
-        con      = self._ensure_db()
+        log = logging.getLogger(__name__)
+        db_path = "assets\\data\\leaderboard.db"
+        con = sqlite3.connect(db_path)
+        con.execute("""
+                    CREATE TABLE IF NOT EXISTS leaderboard(
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT NOT NULL,
+                        elapsed_time REAL NOT NULL,
+                        date TEXT NOT NULL
+            )
+        """)
+        con.commit()
         date_str = date.today().isoformat()
         con.execute(
             "INSERT INTO leaderboard (username, elapsed_time, date) VALUES (?, ?, ?)",
@@ -81,7 +93,7 @@ class Leaderboard(Window):
         )
         con.commit()
         con.close()
-        self.log.info("Leaderboard entry saved: %s  %.2fs  %s", username, elapsed_time, date_str)
+        log.info("Leaderboard entry saved: %s  %.2fs  %s", username, elapsed_time, date_str)
 
     def _fetch_records(self, limit: int = 15) -> list:
         """

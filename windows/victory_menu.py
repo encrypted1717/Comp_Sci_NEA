@@ -27,8 +27,8 @@ class VictoryMenu(Window):
             Args:
                 display: the pygame display surface.
                 renderer: the renderer managing the virtual surface and scaling.
-                winner: a tuple of (player_label, username) identifying the winner,
-                        e.g. ("Player 1", "Alice").
+                winner: a tuple of (player_label, username, elapsed_time) identifying the winner,
+                        e.g. ("Player 1", "Alice", 42.5). elapsed_time is None for PvP matches.
         """
         super().__init__(display, renderer)
         # Main setup
@@ -38,6 +38,7 @@ class VictoryMenu(Window):
         self.buttons.add(
             self.victory_label,
             self.win_label,
+            self.prompt_label,  # Fixed: was created but never added, so never rendered
             self.play_button,
             self.exit_button
         )
@@ -61,9 +62,9 @@ class VictoryMenu(Window):
         username = self._winner[1]
         player_label = self._winner[0]
 
-        menu_font  = pygame.font.Font(self.fonts["OldeTome"], 43)
-        small_font = pygame.font.Font(self.fonts["OldeTome"], 34)
-        title_font = pygame.font.Font(self.fonts["GothicPixel"], 20)
+        menu_font  = pygame.font.Font(self.fonts["GothicPixel"], 20)
+        small_font = pygame.font.Font(self.fonts["GothicPixel"], 14)
+        title_font = pygame.font.Font(self.fonts["GothicPixel"], 22)
 
         # Shared hover styling — interactive buttons invert colours on hover
         hover_kwargs = {
@@ -80,8 +81,8 @@ class VictoryMenu(Window):
         )
 
         self.win_label = Button(
-            (self.center_x, self.center_y - 210),
-            (500, 110),
+            (self.center_x, self.center_y - 270),
+            (510, 110),
             f"{player_label} - {username}  wins!!",  # player_label is e.g. "Player 1", username is their login name
             menu_font,
             "#ffffff",
@@ -105,7 +106,7 @@ class VictoryMenu(Window):
             (self.center_x - 200, self.center_y),
             (340, 90),
             "Play Again",
-            menu_font,
+            small_font,
             "#ffffff",
             "#000000",
             5,
@@ -119,7 +120,7 @@ class VictoryMenu(Window):
             (self.center_x + 200, self.center_y),
             (340, 90),
             "Exit to Main Menu",
-            menu_font,
+            small_font,
             "#ffffff",
             "#000000",
             3,

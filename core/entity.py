@@ -88,7 +88,7 @@ class Entity(pygame.sprite.Sprite):
         self.blocks_remaining = self.max_blocks
         self.is_blocking = False
         self.block_regen_timer = 0.0
-        self.block_regen_delay = 5.0  # seconds after last blocked hit before blocks reset
+        self.block_regen_delay = 10.0  # seconds after last blocked hit before blocks reset
         self.guard_broken = False
         self.guard_break_timer = 0.0
         self.guard_break_duration = 1.3  # seconds movement is locked after guard breaks
@@ -183,6 +183,9 @@ class Entity(pygame.sprite.Sprite):
         # Death takes priority over everything — lock into death anim and skip all other logic
         if self.health <= 0:
             self.animation_manager.set_animation("death", loop=False, restart=False)
+            self.animation_manager.update(dt)  # Must still tick so death anim advances and is_playing() can reach False
+            self.image = pygame.transform.flip(self.animation_manager.get_frame(), self.flip_x, False)
+            self.sync_img_rect_to_body()
             return
 
         # Reset on_ground each frame so collision_manager is the sole authority on grounded state.

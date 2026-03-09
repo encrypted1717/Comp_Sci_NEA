@@ -19,7 +19,7 @@ class Background:
         resize() must be called before the first draw() to scale the images.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Load all background layer images and set up layer state."""
         self.__width  = 0
         self.__height = 0
