@@ -8,8 +8,7 @@
 """
 
 import pygame
-from core.window import Window
-from core.button import Button
+from core import Window, Button
 
 
 class ExitMenu(Window):

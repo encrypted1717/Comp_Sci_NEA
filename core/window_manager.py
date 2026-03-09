@@ -9,16 +9,18 @@
 
 import pygame
 from core.window import Window
-from windows.game import Game
-from windows.game_setup import GameSetup
-from windows.login import Login
-from windows.main_menu import MainMenu
-from windows.controls import Controls
-from windows.pause_menu import PauseMenu
-from windows.settings import Settings
-from windows.victory_menu import VictoryMenu
-from windows.leaderboard import Leaderboard
-from windows.exit_menu import ExitMenu
+from windows import (
+    Game,
+    GameSetup,
+    Login,
+    MainMenu,
+    Controls,
+    PauseMenu,
+    Settings,
+    VictoryMenu,
+    Leaderboard,
+    ExitMenu
+)
 
 
 class WindowManager:

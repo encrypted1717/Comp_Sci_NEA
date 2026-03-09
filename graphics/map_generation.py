@@ -15,8 +15,8 @@
 import pygame
 import logging
 from random import choice
-from core.collider import Collider
-from utils.tile_map import maps
+from core import Collider
+from utils import maps
 
 
 class MapGeneration:

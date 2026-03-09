@@ -13,8 +13,7 @@ import sqlite3
 import pygame
 import logging
 from datetime import date
-from core.window import Window
-from core.button import Button
+from core import Window, Button
 
 
 class Leaderboard(Window):

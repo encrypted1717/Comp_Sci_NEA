@@ -8,9 +8,8 @@
 
 import pygame
 import logging
-from core.window_manager import WindowManager
-from core.config_manager import ConfigManager
-from graphics.virtual_renderer import VirtualRenderer
+from core import WindowManager, ConfigManager
+from graphics import VirtualRenderer
 
 
 def get_settings(path: str, logger: logging.Logger) -> tuple[int, int, str, int, bool]:

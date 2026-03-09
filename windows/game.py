@@ -8,15 +8,9 @@
 """
 
 import pygame
-from core.window import Window
-from core.entity import Entity
-from core.cpu import CPU
-from core.config_manager import ConfigManager
-from core.button import Button
-from core.collision_manager import CollisionManager
-from utils.combat_system import CombatSystem
-from utils.portal import Portal
-from graphics.map_generation import MapGeneration
+from core import Window, Entity, CPU, ConfigManager, Button, CollisionManager
+from utils import CombatSystem, Portal
+from graphics import MapGeneration
 
 
 class Game(Window):

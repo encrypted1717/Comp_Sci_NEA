@@ -11,9 +11,8 @@
 import pygame
 import sqlite3
 import bcrypt
-from core.window import Window
-from core.button import Button
-from graphics.parallax_background import Background
+from core import Window, Button
+from graphics import Background
 
 
 class Login(Window):

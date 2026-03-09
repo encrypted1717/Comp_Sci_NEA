@@ -8,9 +8,9 @@
 """
 
 import pygame
-from core.window import Window
-from core.button import Button
-from graphics.parallax_background import Background
+from core import Window
+from core import Button
+from graphics import Background
 
 
 class MainMenu(Window):
