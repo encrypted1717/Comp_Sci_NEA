@@ -9,7 +9,7 @@
 import random
 import logging
 import pygame
-from core.entity import Entity
+from . import Entity
 
 
 class CPU(Entity):

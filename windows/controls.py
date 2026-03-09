@@ -10,7 +10,8 @@
 
 import pygame
 import configparser
-from core import Window, Button, ConfigManager
+from core import Window, Button
+from utils import ConfigManager
 
 
 class Controls(Window):

@@ -8,7 +8,7 @@
 """
 
 import pygame
-from graphics import AnimationManager
+from . import AnimationManager
 
 
 class Portal:

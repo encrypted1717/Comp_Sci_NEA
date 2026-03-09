@@ -9,7 +9,8 @@
 """
 
 import pygame
-from core import Window, Button, ConfigManager
+from core import Window, Button
+from utils import ConfigManager
 
 
 # TODO: Introduce more settings (e.g. audio, keybind display style)
