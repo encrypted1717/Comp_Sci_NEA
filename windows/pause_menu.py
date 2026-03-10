@@ -80,7 +80,7 @@ class PauseMenu(Window):
         }
 
         self.continue_btn = Button(
-            (self.center_x, 370), # Even though these arguments don't need to declare i.e position=, in this case you do because dimensions breaks the order
+            (self.center_x, 370), # Even though these arguments don't need to declare i.e. position=, in this case you do because dimensions breaks the order
             text="Continue",
             action="back",  # "back" pops the pause menu off the stack and resumes the game
             **kwargs

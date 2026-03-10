@@ -8,7 +8,8 @@
 
 import pygame
 import logging
-from core import WindowManager, ConfigManager
+from core import WindowManager
+from utils import ConfigManager
 from graphics import VirtualRenderer
 
 

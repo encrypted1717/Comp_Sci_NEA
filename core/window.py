@@ -10,7 +10,7 @@
 
 import logging
 import pygame
-from . import Button
+from .button import Button
 
 
 class Window:

@@ -8,7 +8,7 @@
 """
 
 import pygame
-from . import Window
+from .window import Window
 from windows import (
     Game,
     GameSetup,

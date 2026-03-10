@@ -127,7 +127,7 @@ class CollisionManager:
             return
 
         # Ceiling resolution - entity moving upward has clipped into the underside of a tall platform
-        hitting_ceiling = entity.velocity.y < 0 and body.top < platform_rect.bottom and body.top >= platform_rect.top
+        hitting_ceiling = entity.velocity.y < 0 and platform_rect.bottom > body.top >= platform_rect.top
         if hitting_ceiling:
             entity.position.y = platform_rect.bottom + body.height  # Push entity down so head clears the ceiling
             entity.velocity.y = 0 # Kill upward momentum so they don't keep pressing into it

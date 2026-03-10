@@ -547,7 +547,6 @@ class Entity(pygame.sprite.Sprite):
                 inp: input state dict from __get_input_state.
         """
         current = self.animation_manager.get_name()
-        requested = None
         loop = False
         restart = False
 
@@ -602,9 +601,6 @@ class Entity(pygame.sprite.Sprite):
                     loop = True
             else:
                 requested = "default"
-
-        if requested is None:
-            return
 
         # Block lower-priority interruptions while an animation is actively playing or frozen on its last frame.
         # Exception: hold-input animations (crouch, block) should not block transitions once their input is released.
@@ -665,7 +661,7 @@ class Entity(pygame.sprite.Sprite):
         self.is_taking_damage = True
         self.taking_damage_timer = 0.0 # Reset so each new hit gives the full stun duration
 
-    def set_bind(self, action: str, device: str, code: int):
+    def set_bind(self, action: str, device: str, code: int | None):
         """
             Set the input bind for a single action.
 

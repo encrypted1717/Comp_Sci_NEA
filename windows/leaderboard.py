@@ -198,7 +198,7 @@ class Leaderboard(Window):
             "offset_y": 4,
         }
 
-        for index, (rank, username, elapsed_time, date) in enumerate(self._records):
+        for index, (rank, username, elapsed_time, current_date) in enumerate(self._records):
             y = row_start_y + index * row_step
             rect_colour = "#1a1a1a" if index % 2 == 0 else "#000000" # Have a change of colour every row
 
@@ -226,7 +226,7 @@ class Leaderboard(Window):
                 Button(
                     (1620, y),
                     (350, row_height),
-                    date,
+                    current_date,
                     rect_colour=rect_colour,
                     **row_kwargs
                 ),
