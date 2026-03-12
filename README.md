@@ -76,19 +76,18 @@ Comp_Sci_NEA/
 ├── assets/
 │   ├── game_settings/
 │   │   ├── config_default.ini       # Default settings template (resolution, FPS, keybinds)
-│   │   └── users/                   # Per-user config files generated on first login
+│   │   └── users/                   # Per-user config files generated on first login | Created after game run
+│   │       └── config_#             # User config that is assigned per user id | Created after game run
 │   ├── characters/                  # Sprite sheets and animation assets
 │   ├── fonts/                       # OldeTome and GothicPixel font files
 │   ├── images/background/           # Parallax mountain layer PNGs
 │   └── data/
-│       ├── login_credentials.db     # SQLite - user accounts (hashed passwords)
-│       ├── leaderboard.db           # SQLite - CPU victory times
-│       └── debug.log                # Runtime log output
+│       ├── login_credentials.db     # SQLite - user accounts (hashed passwords) | Created after game run
+│       ├── leaderboard.db           # SQLite - CPU victory times | Created after game run
+│       └── debug.log                # Runtime log output | Created after game run
 ├── core/
 │   ├── button.py                    # UI sprite - static label, clickable button, and text input field
 │   ├── collider.py                  # Static rectangular platform sprite
-│   ├── collision_manager.py         # Positional physics resolution (platform + player-player)
-│   ├── config_manager.py            # .ini file reader/writer (wraps configparser)
 │   ├── cpu.py                       # AI opponent entity - extends Entity with a decision loop
 │   ├── entity.py                    # Player entity - physics, combat, animation, input binds
 │   ├── window.py                    # Base screen class - surface, buttons, ESC, back button
@@ -97,10 +96,12 @@ Comp_Sci_NEA/
 │   ├── animation_manager.py         # Sprite sheet loader and frame-advance system
 │   ├── map_generation.py            # Tile grid to merged Collider list conversion
 │   ├── parallax_background.py       # 5-layer scrolling background with seamless wrapping
+│   ├── portal.py                    # Teleport portal - open/close animation, lifetime, colour tinting
 │   └── virtual_renderer.py          # Fixed-resolution rendering with letterbox scaling
 ├── utils/
+│   ├── collision_manager.py         # Positional physics resolution (platform + player-player)
 │   ├── combat_system.py             # Hitbox construction, hit detection, block logic, hit registry
-│   ├── portal.py                    # Teleport portal - open/close animation, lifetime, colour tinting
+│   ├── config_manager.py            # .ini file reader/writer (wraps configparser)
 │   └── tile_map.py                  # Static tile grid data for all 3 maps
 ├── windows/
 │   ├── controls.py                  # Keybind viewer/editor screen
@@ -113,7 +114,7 @@ Comp_Sci_NEA/
 │   ├── pause_menu.py                # Pause overlay (uses frozen game frame as backdrop)
 │   ├── settings.py                  # Display settings (resolution, mode, FPS, debug toggle)
 │   └── victory_menu.py              # Match result screen
-└── requirements.txt
+└── requirements.txt                 # Libraries that should be installed in order to run the project
 ```
 
 ---

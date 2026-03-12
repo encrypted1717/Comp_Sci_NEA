@@ -8,6 +8,7 @@
 
 import pygame
 import logging
+import os
 from core import WindowManager
 from utils import ConfigManager
 from graphics import VirtualRenderer
@@ -116,6 +117,10 @@ def apply_user_settings(user_id: int, renderer: VirtualRenderer, manager: Window
 
 def main() -> None:
     """Initialise the game and run the main loop until the player quits."""
+    # Ensure log and users directory exists
+    os.makedirs('assets\\data', exist_ok=True)
+    os.makedirs("assets\\game_settings\\users", exist_ok=True)
+
     # Setup logging — all modules share this root config
     logging.basicConfig(
         level=logging.DEBUG,
