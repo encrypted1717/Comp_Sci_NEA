@@ -1,14 +1,3 @@
-1. Download folder in your preferred directory
-2. In pycharm open project from the folder,
-3. Select Trust all projects in the folder
-4. Then this will prompt you to create a venv and do so within the folder then double click main.py to open it then run the current file
-5. Once open, pygame-ce is required however normal pygame may work (not tested)
-6. If not installed already close pycharm and then open command prompt
-7. Enter the directory of the folder by typing: cd (directory)
-8. Then type the directory of the activate file within the venv by itself. This is always within the Scripts folder for example: C:\Comp_Sci_NEA\.venv\Scripts\activate
-9. This would have activated the venv which should change your console to (venv) then the directory... now type: pip install pygame-ce
-10. All done now you can close the command prompt and re-open pycharm.
-
 Comp_Sci_NEA
 
 A 2D local multiplayer fighting game built in Python as my A-Level Computer Science NEA. Two players compete in a best-of-3 series on a randomly selected stage, with a full combat system, special abilities, and an AI opponent option.
@@ -77,9 +66,15 @@ Tested on Python 3.14 with pygame-ce 2.5.7 and bcrypt on Windows 11.
 
 ---
 
-Getting Started
+GETTING STARTED
 
-Controls
+REGISTER
+--------
+
+On first launch, register an account on the login screen. Player 1's display settings are applied immediately after login. Player 2 can log in separately from the main menu before starting a match.
+
+
+CONTROLS
 --------
 
 Default keybinds (configurable in-game via the Controls screen):
@@ -96,7 +91,15 @@ Default keybinds (configurable in-game via the Controls screen):
 | Side Ability (Teleport) | 1 | Numpad 0 |
 | Main Ability (Energy Punch) | 2 | Numpad 1 |
 
-Project Structure
+
+SETTINGS
+--------
+
+Settings are stored in `assets/game_settings/config_default.ini` and are copied to a per-user file on first login. They can be changed through the in-game Settings screen.
+
+
+PROJECT STRUCTURE
+-----------------
 
 Comp_Sci_NEA/
 ├── main.py                          # Entry point - game loop, display setup, event processing
@@ -142,51 +145,76 @@ Comp_Sci_NEA/
 │   ├── settings.py                  # Display settings (resolution, mode, FPS, debug toggle)
 │   └── victory_menu.py              # Match result screen
 └── requirements.txt                 # Libraries that should be installed in order to run the project
----
-
-
-
-### Prerequisites
-
-- Python 3.10+
-- pip
-
-On first launch, register an account on the login screen. Player 1's display settings are applied immediately after login. Player 2 can log in separately from the main menu before starting a match.
 
 ---
 
-## Controls
+FEATURES
 
-Default keybinds (configurable in-game via the Controls screen):
+GAMEPLAY
+--------
 
-| Action | Player 1 | Player 2 |
-|---|---|---|
-| Move Left | A | Left Arrow |
-| Move Right | D | Right Arrow |
-| Jump | W | Up Arrow |
-| Crouch / Fast Fall | S | Down Arrow |
-| Sprint | Left Shift | Right Shift |
-| Punch | Space | Enter |
-| Block | E | Backspace |
-| Side Ability (Teleport) | 1 | Numpad 0 |
-| Main Ability (Energy Punch) | 2 | Numpad 1 |
+    - Best-of-3 round system with per-round countdown, result screen, and win tracking
+    - Player vs Player (local) and Player vs CPU modes
+    - Three difficulty levels for the CPU opponent: Easy, Medium, Hard
+    - Double jump, sprint, crouch, and fast-fall movement
+    - 5-attack combo system: Punch 1, Punch 2, Jump Strike, Slide Attack, Energy Punch
+    - Block system with a limited block count per round and a regeneration timer
+    - Guard break - blocking all hits causes a temporary movement lock
+    - Teleport ability - place a portal, then warp back to it at any time
+    - Energy system that regenerates over time and gates special moves
+    - Knockback and launch effects on Slide Attack and Energy Punch
+    - Killzone - entities that fall off the stage are removed from play
 
----
 
-## Configuration
+Graphics & Rendering
+--------------------
 
-Settings are stored in `assets/game_settings/config_default.ini` and copied to a per-user file on first login. They can be changed through the in-game Settings screen or by editing the `.ini` directly.
+    - Virtual renderer at 1920x1080 - scales to any window size with black letterbox bars
+    - Multi-layer parallax scrolling background (5 mountain landscape layers)
+    - Sprite sheet animation manager with looping, freeze-on-last-frame, and priority interrupts
+    - Energy charge overlay rendered on top of the active animation while charged
+    - Animated portal effect with per-player colour tinting (blue / red)
+    - HUD - health bars, energy bars (with 5 segment dividers), block count, round label, win counter
+    - Countdown sequence (3, 2, 1, FIGHT!) at the start of every round with drop shadow text
+    - Debug mode - toggle from settings to overlay physics bodies, sprite bounds, and attack hitboxes
 
-Available options include screen resolution, display mode (Windowed / Borderless / Fullscreen), FPS cap, Vsync, debug overlay toggle, and all keybinds for both players.
 
----
+MAP & COLLISION
+---------------
 
-## Not Yet Implemented / In Progress
+    - 3 handcrafted tile maps (48x27 grid, 40px tiles = 1920x1080), selected randomly each round
+    - Rectangle merging algorithm reduces adjacent solid tiles into the minimum number of colliders
+    - One-way platform physics - land from above, pass through from below and sides
+    - Fully solid tall-platform collision - blocks ceiling and walls
+    - Step detection allows entities to auto-climb small ledges without jumping
+    - Player-vs-player separation resolved along the shortest overlap axis with partial velocity transfer
 
-- Additional character types and sprite sets
-- In-game map editor
-- Additional tile types beyond sky and dirt
-- Sound and music
-- Full Steam build and packaging
 
----
+COMBAT SYSTEM
+-------------
+
+    - Per-attack hitbox configs with frame-accurate active damage windows
+    - Hit registry prevents the same swing landing on the same defender more than once
+    - Hitboxes mirror horizontally when the attacker is facing left
+    - Blocking consumes one block charge and resets the block regen timer
+    - Energy is gained by landing hits
+
+
+AUTHENTICATION
+--------------
+
+    - Login and registration with bcrypt password hashing
+    - Password validation (uppercase, lowercase, digit, special character, length rules)
+    - Per-player config files (resolution, display mode, FPS, vsync, keybinds)
+    - Leaderboard backed by SQLite - tracks fastest Player 1 CPU victories (rank, username, time, date)
+    - Duplicate login prevention - the same account cannot be logged in as both players
+
+
+CPU AI
+------
+
+    - Decision loop fires on a configurable reaction timer (not every frame) to simulate human delay
+    - Distance-based positioning: chase, preferred range, retreat
+    - Probability-weighted attack, block, jump, sprint, and ability usage
+    - Slide attack combo (sprint + crouch + punch) triggered at close range
+    - Detects when opponent is airborne and jumps to intercept

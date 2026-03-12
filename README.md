@@ -52,7 +52,7 @@ Players log in (or register) before playing. Player 1's display settings are app
 - Blocking consumes one block charge and resets the block regen timer
 - Energy is gained by landing hits
 
-### Authentication & Persistence
+### Authentication
 - Login and registration with bcrypt password hashing
 - Password validation (uppercase, lowercase, digit, special character, length rules)
 - Per-player config files (resolution, display mode, FPS, vsync, keybinds)
