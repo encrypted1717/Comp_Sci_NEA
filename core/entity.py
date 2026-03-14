@@ -113,7 +113,7 @@ class Entity(pygame.sprite.Sprite):
         self.combos = 0
         self.punch_combo_step = 0 # 0 = ready for punch_1, 1 = ready for punch_2, 2 = combo complete
         self.punch_cooldown_timer = 0.0
-        self.punch_cooldown_duration = 0.5    # Seconds after punch_2 before the combo resets to step 0
+        self.punch_cooldown_duration = 1    # Seconds after punch_2 before the combo resets to step 0
         self.jump_strike_cooldown_timer = 0.0
         self.jump_strike_cooldown_duration = 0.4    # Seconds between air jump strikes
         self._attack_just_started = False  # True only on the exact frame an attack begins - used by select_animation
