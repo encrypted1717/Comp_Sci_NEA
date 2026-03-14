@@ -11,6 +11,8 @@
 import pygame
 import sqlite3
 import bcrypt
+import shutil
+from utils import ConfigManager
 from core import Window, Button
 from graphics import Background
 
@@ -282,6 +284,14 @@ class Login(Window):
                 return None
 
             self.log.info("Registered new user: %s (id=%s)", username, user_id)
+
+            # Create config file for new user, copied from defaults
+            config_path = f"assets\\game_settings\\users\\config_{user_id}.ini"
+            config_manager = ConfigManager(config_path)
+            if not config_manager.file_read:
+                shutil.copy("assets\\game_settings\\config_default.ini", config_path)
+
+            self.log.info("Registered new user: %s (id=%s)", username, user_id)
             self.__clear_inputs()
             return "main", (user_id, username)
 
@@ -309,6 +319,12 @@ class Login(Window):
                 )
                 self.buttons.add(self.__duplicate_error_label)
                 return None
+
+            # Ensure config file exists - covers accounts created before this fix
+            config_path = f"assets\\game_settings\\users\\config_{row[0]}.ini"
+            config_manager = ConfigManager(config_path)
+            if not config_manager.file_read:
+                shutil.copy("assets\\game_settings\\config_default.ini", config_path)
 
             self.log.info("User logged in: %s (id=%s)", username, row[0])
             self.__clear_inputs()
