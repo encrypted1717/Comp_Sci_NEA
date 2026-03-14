@@ -8,7 +8,7 @@
 
 import pygame
 import logging
-import os
+import shutil
 from core import WindowManager
 from utils import ConfigManager
 from graphics import VirtualRenderer
@@ -29,7 +29,6 @@ def get_settings(path: str, logger: logging.Logger) -> tuple[int, int, str, int,
         Returns:
             A tuple of (width, height, display_mode, framerate, vsync).
     """
-    import shutil
     default_path = "assets\\game_settings\\config_default.ini"
     config_manager = ConfigManager(path)
 
@@ -117,10 +116,6 @@ def apply_user_settings(user_id: int, renderer: VirtualRenderer, manager: Window
 
 def main() -> None:
     """Initialise the game and run the main loop until the player quits."""
-    # Ensure log and users directory exists
-    os.makedirs('assets\\data', exist_ok=True)
-    os.makedirs("assets\\game_settings\\users", exist_ok=True)
-
     # Setup logging — all modules share this root config
     logging.basicConfig(
         level=logging.DEBUG,
