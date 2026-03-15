@@ -16,14 +16,18 @@ PART 1 - OPENING THE PROJECT
 -----------------------------
 1. Download the project folder and place it in your preferred directory.
 
-2. Open PyCharm and select Open, then navigate to and select the project folder.
+2. Enter the "fonts" folder via the root folder "assets". There will be 2 folders.
 
-3. When prompted, select "Trust all projects in the folder".
+3. Go into both and install the fonts by double-clicking and selecting install
 
-4. PyCharm will prompt you to create a virtual environment (venv) - accept this
+4. Once done, open PyCharm and select Open, then navigate to and select the project folder.
+
+5. When prompted, select "Trust all projects in the folder".
+
+6. PyCharm will prompt you to create a virtual environment (venv) - accept this
    and create it within the project folder.
 
-5. Double-click main.py to open it, then click Run > Run Current File.
+7. Double-click main.py to open it, then click Run > Run Current File.
 
 NOTE: Do not open main.py directly by double-clicking it in File Explorer - this
 will not use the virtual environment and the game will not launch correctly.
