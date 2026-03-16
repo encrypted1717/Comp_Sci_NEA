@@ -68,6 +68,14 @@ class Controls(Window):
         self._rebind_btns = {} # Maps action name -> (p1_btn, p2_btn) so __apply_rebind can update the right button
 
         self.__create_buttons()
+        self.buttons.add(
+            self._back_btn,
+            self._title,
+            self._p1_header,
+            self._p2_header,
+            *self._action_labels,  # * unpacks the list into individual sprite arguments
+            *(btn for pair in self._rebind_btns.values() for btn in pair)
+        )
 
     def event_handler(self, events):
         """
@@ -235,25 +243,41 @@ class Controls(Window):
         else:
             player2_offset = 0
 
+        header_kwargs = {
+            "font": general_font,
+            "text_colour": "#ffffff",
+            "rect_colour": "#000000",
+            "offset_y": 4
+        }
+
         self._p1_header = Button(
             (600 + (player1_offset // 2), 150),
             (340 + player1_offset, 60),
             f"P1 - {self.player1[1]}",
-            general_font,
-            "#ffffff", "#000000",
-            offset_y=4
+            **header_kwargs
         )
         self._p2_header = Button(
             (1320, 150),
             (340 + player2_offset, 60),
             p2_label,
-            general_font,
-            "#ffffff", "#000000",
-            offset_y=4
+            **header_kwargs
         )
 
         y_step = 90 # Vertical spacing between each action row
         self._action_labels = []
+
+        general_kwargs = {
+            "font": general_font,
+            "text_colour": "#000000",
+            "rect_colour": "#ffffff",
+            "border": 5,
+            "border_colour": "#000000",
+            "offset_y": 4,
+            "hover_text_colour": "#ffffff",
+            "hover_rect_colour": "#000000",
+            "hover_border_colour": "#ffffff",
+            "fill_on_hover": True
+        }
 
         for index, action in enumerate(self.actions): # enumerate provides both position index and action name
             y = 250 + index * y_step
@@ -264,7 +288,8 @@ class Controls(Window):
                 (300, 60),
                 action.capitalize(),
                 action_font,
-                "#ffffff", "#000000",
+                "#ffffff",
+                "#000000",
                 offset_y=4
             )
             self._action_labels.append(label)
@@ -274,60 +299,41 @@ class Controls(Window):
                 (600 + (player1_offset // 2), y),
                 (280, 60),
                 self._get_key_name(self._p1_controls[action]),
-                general_font,
-                "#000000", "#ffffff", 5,
-                border_colour="#000000",
-                offset_y=4,
                 action=f"rebind_p1_{action}", # Action string encodes both player and action name for handle_action to parse
-                hover_text_colour="#ffffff",
-                hover_rect_colour="#000000",
-                hover_border_colour="#ffffff",
-                fill_on_hover=True
+                **general_kwargs
             )
 
             # Player 2 bind button
             p2_btn = Button(
-                (1320, y), (280, 60),
+                (1320, y),
+                (280, 60),
                 self._get_key_name(self._p2_controls[action]),
-                general_font,
-                "#000000", "#ffffff", 5,
-                border_colour="#000000",
-                offset_y=4,
                 action=f"rebind_p2_{action}",
-                hover_text_colour="#ffffff",
-                hover_rect_colour="#000000",
-                hover_border_colour="#ffffff",
-                fill_on_hover=True
+                **general_kwargs
             )
 
             self._rebind_btns[action] = (p1_btn, p2_btn) # Store pair so _apply_rebind can update the correct button
 
         # Apply button - not added to the group here; event_handler adds it dynamically once changed=True
         self._apply_btn = Button(
-            (1770, 960), (160, 60), "Apply",
-            general_font, "#000000", "#ffffff", 5,
-            border_colour="#000000", offset_y=4,
+            (1770, 960),
+            (160, 60),
+            "Apply",
             action="apply",
-            hover_text_colour="#ffffff", hover_rect_colour="#000000",
-            hover_border_colour="#ffffff", fill_on_hover=True,
+            **general_kwargs
         )
 
         # Rebind overlay - shown centered on screen while waiting for input; not added until rebind mode starts
         self._rebind_overlay = Button(
-            (self.center_x, self.center_y + 100), (700, 100),
+            (self.center_x, self.center_y + 100),
+            (700, 100),
             "Press any key  -  Esc to cancel",
             pygame.font.Font(self.fonts["OldeTome"], 37),
-            "#ffffff", "#000000", 5,
-            border_colour="#ffffff", offset_y=4,
-        )
-
-        self.buttons.add(
-            self._back_btn,
-            self._title,
-            self._p1_header,
-            self._p2_header,
-            *self._action_labels, # * unpacks the list into individual sprite arguments
-            *(btn for pair in self._rebind_btns.values() for btn in pair), # Flatten the (p1, p2) pairs into a single sequence
+            "#ffffff",
+            "#000000",
+            5,
+            border_colour="#ffffff",
+            offset_y=4
         )
 
     def _save_controls(self):

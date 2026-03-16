@@ -115,9 +115,9 @@ class Login(Window):
     def _create_buttons(self) -> None:
         """Create and store all input fields, buttons, and error labels for the login screen."""
         player_font = pygame.font.Font(self.fonts["GothicPixel"], 28)
-        text_font   = pygame.font.Font(self.fonts["GothicPixel"], 16)
-        btn_font    = pygame.font.Font(self.fonts["GothicPixel"], 20)
-        error_font  = pygame.font.Font(self.fonts["GothicPixel"], 12)
+        text_font = pygame.font.Font(self.fonts["GothicPixel"], 16)
+        btn_font = pygame.font.Font(self.fonts["GothicPixel"], 20)
+        error_font = pygame.font.Font(self.fonts["GothicPixel"], 12)
 
         # Shared styling for error overlay labels — red text, white fill, thin border
         error_kwargs = {
@@ -320,7 +320,7 @@ class Login(Window):
                 self.buttons.add(self.__duplicate_error_label)
                 return None
 
-            # Ensure config file exists - covers accounts created before this fix
+            # Ensure config file exists
             config_path = f"assets\\game_settings\\users\\config_{row[0]}.ini"
             config_manager = ConfigManager(config_path)
             if not config_manager.file_read:
@@ -330,7 +330,7 @@ class Login(Window):
             self.__clear_inputs()
             return "main", (row[0], username)
 
-        # Credentials didn't match — show the generic login error
+        # Credentials didn't match - show the generic login error
         self.log.warning("Failed login attempt for username: %s", username)
         self.buttons.remove(self.__reg_user_error_label, self.__reg_pass_error_label)
         self.buttons.add(self.__login_error_label)

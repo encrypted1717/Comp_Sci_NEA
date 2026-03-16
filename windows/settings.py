@@ -141,13 +141,13 @@ class Settings(Window):
         if action == "apply":
             self.config_manager.set_values({
                 "Graphics": {
-                    "Screen_Width":  self.resolution[0],
+                    "Screen_Width": self.resolution[0],
                     "Screen_Height": self.resolution[1]
                 },
                 "Window": {
                     "Display_Mode": self.display_mode,
-                    "FPS":          self.fps,
-                    "Vsync":        self.vsync
+                    "FPS": self.fps,
+                    "Vsync": self.vsync
                 },
                 "Game": {
                     "Debugging": self.debugging

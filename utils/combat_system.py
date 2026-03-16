@@ -124,7 +124,7 @@ class CombatSystem:
             else:
                 # Either not blocking, or block is broken - take full damage and trigger hurt
                 damage = getattr(attacker, attack_data["damage_attr"], 0)
-                attacker.energy += 10
+                attacker.energy += 10 if not attacker.energy >= 100 else 0
                 defender.take_hit(damage)
             # Slide attack launches defender straight up regardless of block
             if attacker.attack_name == "slide_attack":

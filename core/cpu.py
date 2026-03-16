@@ -81,8 +81,8 @@ class CPU(Entity):
                 "attack_chance": 0.80,
                 "block_chance": 0.60,
                 "jump_chance": 0.35,
-                "sprint_chance": 0.65,
-                "ability_chance": 0.12,
+                "sprint_chance": 0.75,
+                "ability_chance": 0.22,
                 "attack_range": 155,
                 "preferred_range": 150,
                 "retreat_range": 50,
@@ -93,15 +93,15 @@ class CPU(Entity):
         self.settings = self.difficulty_settings.get(difficulty.lower())
 
         self._opponent = None
-        self._reaction_timer = 0.0    # Accumulates dt each frame until a new decision is due
+        self._reaction_timer = 0.0 # Accumulates dt each frame until a new decision is due
         self._cached_input = {
-            "left":         False,
-            "right":        False,
-            "jump":         False,
-            "down":         False,
-            "sprint":       False,
-            "punch":        False,
-            "block":        False,
+            "left": False,
+            "right": False,
+            "jump": False,
+            "down": False,
+            "sprint": False,
+            "punch": False,
+            "block": False,
             "main_ability": False,
             "side_ability": False,
         }  # Holds the input dict until the next decision changes it

@@ -37,14 +37,10 @@ class VictoryMenu(Window):
         self.buttons.add(
             self.victory_label,
             self.win_label,
-            self.prompt_label,  # Fixed: was created but never added, so never rendered
+            self.prompt_label,
             self.play_button,
             self.exit_button
         )
-
-    def on_escape(self) -> None:
-        """Disable ESC on the victory screen — the player must make an explicit choice."""
-        return None
 
     def draw(self, dt: float) -> None:
         """
@@ -56,6 +52,10 @@ class VictoryMenu(Window):
         self.surface.fill((255, 255, 255))
         super().draw(dt)
 
+    def on_escape(self) -> None:
+        """Disable ESC on the victory screen — the player must make an explicit choice."""
+        return None
+    
     def __create_buttons(self) -> None:
         """Create and store all labels and buttons displayed on the victory screen."""
         username = self._winner[1]
