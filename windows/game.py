@@ -158,8 +158,7 @@ class Game(Window):
             self.round_over_timer += dt
             if self.round_over_timer >= self.round_over_delay:
                 p1_name = self.player1_data[1]
-                p2_name = self.player2_data[1] if self.player2_data else "CPU"
-                print(f"DEBUG victory: player1_data={self.player1_data}, p1_name={repr(p1_name)}")  # add this
+                p2_name = self.player2_data[1] if self.player2_data else ("CPU" if self.cpu_difficulty else None)
                 if self.player1_wins >= 2:
                     # Include elapsed_time only for CPU wins so the leaderboard can record it
                     elapsed = round(self.elapsed_time, 2) if self.cpu_difficulty else None
@@ -370,8 +369,8 @@ class Game(Window):
             self.round_result_text = f"Player 1 - {self.player1_data[1]}  Wins!"
         elif p2_alive and not p1_alive:
             self.player2_wins += 1
-            p2_name = self.player2_data[1] if self.player2_data else p2_label
-            self.round_result_text = f"{p2_label} - {p2_name} Wins!" if p2_name != "CPU" else f"{p2_name} Wins!"
+            p2_name = self.player2_data[1] if self.player2_data else None
+            self.round_result_text = f"{p2_label} - {p2_name}  Wins!" if p2_name else f"{p2_label}  Wins!"
         else:
             self.round_result_text = "Draw!"
 

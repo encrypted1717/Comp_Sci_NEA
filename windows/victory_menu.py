@@ -55,7 +55,7 @@ class VictoryMenu(Window):
     def on_escape(self) -> None:
         """Disable ESC on the victory screen — the player must make an explicit choice."""
         return None
-    
+
     def __create_buttons(self) -> None:
         """Create and store all labels and buttons displayed on the victory screen."""
         username = self._winner[1]
@@ -79,10 +79,11 @@ class VictoryMenu(Window):
             offset_y=4
         )
 
+        win_text = f"{player_label} - {username}  wins!!" if username else f"{player_label}  wins!!"
         self.win_label = Button(
             (self.center_x, self.center_y - 270),
             (510, 110),
-            f"{player_label} - {username}  wins!!",  # player_label is e.g. "Player 1", username is their login name
+            win_text,  # username omitted when player 2 has no login
             menu_font,
             "#ffffff",
             "#000000",

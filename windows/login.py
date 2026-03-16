@@ -210,7 +210,7 @@ class Login(Window):
 
         self.__reg_pass_error_label = Button(
             (1500, 605), (400, 245),
-            "PASSWORD ERROR\nPasswords must have:\n- at least 6 characters\n- a capital and lowercase letter\n- a number\n- a special character\n- a maximum of 26 characters",
+            "PASSWORD ERROR\nPasswords must have:\n- at least 6 characters\n- a capital and lowercase letter\n- a number\n- a special character",
             **error_kwargs
         )
 
