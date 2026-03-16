@@ -59,7 +59,7 @@ class Window:
         # Both conditions must be true: on_escape must return "back" (not None or another action),
         # and show_back_button must return True. This allows subclasses to suppress the button
         # independently of ESC behaviour.
-        if self.show_back_button():
+        if self.on_escape() and self.show_back_button():
             self._back_btn = Button(
                 (150, 90), (160, 60), "Back",
                 pygame.font.Font(self.fonts["OldeTome"], 37),

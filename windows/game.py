@@ -164,7 +164,8 @@ class Game(Window):
                     elapsed = round(self.elapsed_time, 2) if self.cpu_difficulty else None
                     self.pending_action = ("victory", ("Player 1", p1_name, elapsed))
                 elif self.player2_wins >= 2:
-                    self.pending_action = ("victory", ("Player 2", p2_name, None))
+                    winner_label = "CPU" if self.cpu_difficulty else "Player 2"
+                    self.pending_action = ("victory", (winner_label, None if self.cpu_difficulty else p2_name, None))
                 else:
                     self.__reset_round()
 
@@ -385,7 +386,6 @@ class Game(Window):
         self.round_over = False
         self.round_over_timer = 0.0
         self.round_result_text = None
-        self.elapsed_time = 0  # reset for next round so time reflects the full match fresh
         self.countdown_index = 0
         self.countdown_timer = 0.0
         self.countdown_active = True
@@ -642,6 +642,3 @@ class Game(Window):
 
     def on_escape(self):
         return None
-
-    def show_back_button(self):
-        return False

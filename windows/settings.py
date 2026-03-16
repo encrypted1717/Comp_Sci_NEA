@@ -46,7 +46,7 @@ class Settings(Window):
         self.debugging = self.config.get("Game", "Debugging")
         self.resolutions = pygame.display.list_modes()  # All modes supported by the display hardware
         self.resolution = self.display.get_size()  # Read from the live window, not the config, to reflect actual state
-        self.display_modes = ("Fullscreen", "Borderless_Windowed", "Windowed")
+        self.display_modes = ("Fullscreen", "Windowed")
         self.display_mode = self.config.get("Window", "Display_Mode")
         self.fps_values = ("30", "60", "120", "144", "165", "185", "240", "360", "Unlimited")  # "Unlimited" maps to 0 in pygame clock
         self.fps = self.config.get("Window", "FPS")
@@ -103,12 +103,22 @@ class Settings(Window):
                 changes, or the action string unchanged for anything else.
         """
         if action == "cycle_resolution":
+            if self.display_mode == "Borderless_Windowed":
+                # Borderless always uses desktop resolution - switch to fullscreen to allow custom res
+                self.display_mode = "Fullscreen"
+                self.__display_mode_btn.update_text(self.display_mode)
+                self.changed = True
             self.resolution = self.__cycle_setting(self.resolution, self.resolutions)
             self.__resolution_btn.update_text(f"{self.resolution[0]} x {self.resolution[1]}")
             return None
 
         if action == "cycle_display_modes":
             self.display_mode = self.__cycle_setting(self.display_mode, self.display_modes)
+            if self.display_mode == "Borderless_Windowed":
+                # Snap resolution to desktop size - borderless always fills the screen
+                self.resolution = pygame.display.get_desktop_sizes()[0]
+                self.__resolution_btn.update_text(f"{self.resolution[0]} x {self.resolution[1]}")
+                self.changed = True
             self.__display_mode_btn.update_text(self.display_mode)
             return None
 
